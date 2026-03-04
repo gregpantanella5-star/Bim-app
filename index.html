@@ -264,35 +264,159 @@
     <div class="merchant-view">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <h2 style="font-size:20px;font-weight:900">Mode Commerçant</h2>
-        <span style="font-size:11px;background:rgba(16,185,129,0.2);color:#34d399;padding:4px 12px;border-radius:999px;font-weight:700">Zéro Effort ✓</span>
+        <span style="font-size:11px;background:rgba(16,185,129,0.2);color:#34d399;padding:4px 12px;border-radius:999px;font-weight:700">PRO ✓</span>
       </div>
-      <div class="section-card">
-        <p class="section-title">🎙 Dictée vocale</p>
-        <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎤</button>
-        <p class="mic-hint" id="mic-hint">Appuyez pour dicter votre offre</p>
-        <div class="transcript-box" id="transcript-box" style="display:none">
-          <p class="transcript-label">Transcription en direct :</p>
-          <p class="transcript-text" id="transcript-text"></p>
-        </div>
-        <div id="parsed-result" style="display:none">
-          <p style="font-size:12px;color:#34d399;font-weight:700;margin:12px 0 8px">🤖 Structuré par l'IA :</p>
-          <div class="parsed-grid">
-            <div class="parsed-item"><div class="parsed-key">Produit</div><div class="parsed-val">Côte de bœuf</div></div>
-            <div class="parsed-item"><div class="parsed-key">Variété</div><div class="parsed-val">Angus</div></div>
-            <div class="parsed-item"><div class="parsed-key">Quantité</div><div class="parsed-val">5 kg</div></div>
-            <div class="parsed-item"><div class="parsed-key">Promo</div><div class="parsed-val">40%</div></div>
+
+      <!-- TABS INTERNES -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button onclick="showProTab('voice')" id="ptab-voice" style="flex:1;padding:10px;border-radius:12px;border:none;background:#f97316;color:white;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">🎤 Vocal</button>
+        <button onclick="showProTab('camera')" id="ptab-camera" style="flex:1;padding:10px;border-radius:12px;border:none;background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">📸 Caméra</button>
+        <button onclick="showProTab('manual')" id="ptab-manual" style="flex:1;padding:10px;border-radius:12px;border:none;background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">✏️ Manuel</button>
+        <button onclick="showProTab('mydeals')" id="ptab-mydeals" style="flex:1;padding:10px;border-radius:12px;border:none;background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">📦 Mes offres</button>
+      </div>
+
+      <!-- VOCAL -->
+      <div id="protab-voice">
+        <div class="section-card">
+          <p class="section-title">🎙 Dicter votre offre à voix haute</p>
+          <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎤</button>
+          <p class="mic-hint" id="mic-hint">Appuyez pour parler</p>
+          <div id="mic-status" style="text-align:center;font-size:12px;color:#64748b;margin-top:8px"></div>
+          <div class="transcript-box" id="transcript-box" style="display:none">
+            <p class="transcript-label">🎤 Transcription :</p>
+            <p class="transcript-text" id="transcript-text"></p>
           </div>
-          <button class="btn-publish" id="btn-publish" onclick="publish()">⚡ Lancer l'Offre Flash</button>
+          <div id="parsed-result" style="display:none">
+            <p style="font-size:12px;color:#34d399;font-weight:700;margin:12px 0 8px">🤖 Remplissage automatique :</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div>
+                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Nom du produit</label>
+                <input id="v-name" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Prix (€)</label>
+                  <input id="v-price" type="number" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+                </div>
+                <div>
+                  <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Remise (%)</label>
+                  <input id="v-discount" type="number" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+                </div>
+              </div>
+              <div>
+                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Quantité / Poids</label>
+                <input id="v-qty" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+            </div>
+            <button class="btn-publish" id="btn-publish-voice" onclick="publishOffer('voice')" style="margin-top:12px">⚡ Publier l'offre flash</button>
+          </div>
         </div>
       </div>
-      <div class="section-card">
-        <p class="section-title">📸 Analyse Photo IA</p>
-        <button onclick="analyzePhoto()" style="width:100%;border:2px dashed #334155;background:none;border-radius:16px;padding:32px;color:#64748b;cursor:pointer;font-size:14px;font-family:'Montserrat',sans-serif" id="photo-btn">
-          📷 Ajouter une photo produit<br><span style="font-size:11px;margin-top:8px;display:block">L'IA analysera la fraîcheur automatiquement</span>
-        </button>
+
+      <!-- CAMERA -->
+      <div id="protab-camera" style="display:none">
+        <div class="section-card">
+          <p class="section-title">📸 Photo du produit</p>
+          <div id="camera-preview" style="width:100%;aspect-ratio:4/3;background:#0f172a;border-radius:16px;overflow:hidden;position:relative;margin-bottom:12px;display:flex;align-items:center;justify-content:center">
+            <span id="camera-placeholder" style="color:#475569;font-size:14px;text-align:center">Aucune photo<br>Appuyez pour prendre une photo</span>
+            <img id="camera-img" style="display:none;width:100%;height:100%;object-fit:cover" />
+            <canvas id="camera-canvas" style="display:none"></canvas>
+          </div>
+          <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)" />
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button onclick="document.getElementById('camera-input').click()" style="flex:1;padding:14px;background:#f97316;color:white;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">📷 Prendre une photo</button>
+            <button onclick="document.getElementById('camera-input').removeAttribute('capture');document.getElementById('camera-input').click()" style="flex:1;padding:14px;background:#1e293b;color:#94a3b8;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">🖼 Galerie</button>
+          </div>
+          <div id="ai-analysis-result" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px;margin-bottom:12px">
+            <p style="font-size:12px;font-weight:700;color:#34d399;margin-bottom:4px">🤖 Analyse IA</p>
+            <p id="ai-analysis-text" style="font-size:13px;color:#6ee7b7"></p>
+          </div>
+          <div id="camera-form" style="display:none">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <input id="c-name" placeholder="Nom du produit" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <input id="c-price" type="number" placeholder="Prix (€)" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+                <input id="c-discount" type="number" placeholder="Remise (%)" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <input id="c-qty" placeholder="Quantité / Poids" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              <input id="c-merchant" placeholder="Nom de votre commerce" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            </div>
+            <button class="btn-publish" onclick="publishOffer('camera')" style="margin-top:12px">⚡ Publier l'offre flash</button>
+          </div>
+        </div>
       </div>
+
+      <!-- MANUEL -->
+      <div id="protab-manual" style="display:none">
+        <div class="section-card">
+          <p class="section-title">✏️ Saisie manuelle</p>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM DU PRODUIT *</label>
+              <input id="m-name" placeholder="ex: Côte de bœuf Angus" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            </div>
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">COMMERCE *</label>
+              <input id="m-merchant" placeholder="ex: Boucherie Martin" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">PRIX ORIGINAL (€) *</label>
+                <input id="m-orig" type="number" step="0.01" placeholder="0.00" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <div>
+                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">REMISE (%) *</label>
+                <input id="m-discount" type="number" placeholder="0" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" oninput="calcPrice()" />
+              </div>
+            </div>
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+              <span style="color:#6ee7b7;font-size:13px;font-weight:700">💰 Prix flash :</span>
+              <span id="m-flash-price" style="font-size:24px;font-weight:900;color:#34d399">—</span>
+            </div>
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">QUANTITÉ / POIDS</label>
+              <input id="m-qty" placeholder="ex: 1.2 kg, 3 pièces..." style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            </div>
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CATÉGORIE</label>
+              <select id="m-cat" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px">
+                <option value="viande">🥩 Viande</option>
+                <option value="cave">🍷 Cave</option>
+                <option value="primeur">🥦 Primeur</option>
+                <option value="laitier">🧀 Laitier</option>
+                <option value="pret">🍱 Prêt à manger</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">DESCRIPTION</label>
+              <textarea id="m-desc" placeholder="Décrivez votre produit..." rows="3" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px;resize:none"></textarea>
+            </div>
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">PHOTO (optionnel)</label>
+              <input type="file" id="m-photo-input" accept="image/*" style="display:none" onchange="handleManualPhoto(event)" />
+              <button onclick="document.getElementById('m-photo-input').click()" style="width:100%;border:2px dashed #334155;background:none;border-radius:12px;padding:16px;color:#64748b;cursor:pointer;font-size:13px;font-family:Montserrat,sans-serif" id="m-photo-btn">📷 Ajouter une photo</button>
+            </div>
+            <div>
+              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">VALIDITÉ</label>
+              <div style="display:flex;gap:8px">
+                <button onclick="setExpiry(this,'Aujourd'hui')" style="flex:1;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" class="expiry-btn">Aujourd'hui</button>
+                <button onclick="setExpiry(this,'Demain')" style="flex:1;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" class="expiry-btn">Demain</button>
+                <button onclick="setExpiry(this,'3 jours')" style="flex:1;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" class="expiry-btn">3 jours</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn-publish" onclick="publishOffer('manual')" style="margin-top:16px">⚡ Publier l'offre flash</button>
+        </div>
+      </div>
+
+      <!-- MES OFFRES -->
+      <div id="protab-mydeals" style="display:none">
+        <div id="mydeals-list"></div>
+      </div>
+
     </div>
   </div>
+
 
   <div id="view-b2b" style="display:none">
     <div class="b2b-view">
@@ -351,13 +475,12 @@
 
 <script>
 const DEALS = [
-  { id:1, cat:'viande', name:'Côte de Bœuf Angus', merchant:'Boucherie Fabre', origin:'VAR', discount:60, price:18.90, orig:47.20, weight:'1.2 kg', expiry:"Aujourd'hui 20h00", timer:'4h 23m', ai:'Persillage excellent · Couleur optimale · Fraîcheur ✓', badge:'BIM TERROIR', badgeColor:'#10B981', co2:1.4, bg:'https://images.unsplash.com/photo-1558030006-450675393462?w=600&q=80', photo:'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=200&q=80', desc:"Race Angus élevée en plein air, alimentation 100% naturelle." },
-  { id:2, cat:'cave', name:'Lot 12 Rosé Provence', merchant:'Cave Coopérative', origin:'AOP', discount:45, price:54, orig:98, weight:'12 × 75cl', expiry:'Demain 18h00', timer:'22h 00m', ai:null, badge:'ENCHÈRE', badgeColor:'#F97316', co2:0.8, bg:'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80', photo:'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=200&q=80', desc:"Cuvée Tradition, récoltée à la main. Parfait pour l'été." },
-  { id:3, cat:'primeur', name:'Tomates Cœur de Bœuf', merchant:'Maraîcher Bonnet', origin:'VAR', discount:50, price:2.40, orig:4.80, weight:'2 kg', expiry:"Aujourd'hui 22h00", timer:'2h 10m', ai:'Maturité optimale · Arôme intense · Calibre A', badge:'BIM TERROIR', badgeColor:'#10B981', co2:0.3, bg:'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=600&q=80', photo:'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=200&q=80', desc:'Variété ancienne, sans traitement chimique.' },
-  { id:4, cat:'laitier', name:'Comté AOP 24 mois', merchant:'Fromagerie Martin', origin:'Jura', discount:35, price:12.50, orig:19.20, weight:'500g', expiry:'Dans 3 jours', timer:'72h 00m', ai:'Affinage parfait · Notes noisette · Texture idéale', badge:'PRIX CHOC', badgeColor:'#F97316', co2:0.5, bg:'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80', photo:'https://images.unsplash.com/photo-1452195100486-9cc805987862?w=200&q=80', desc:'Sélectionné par notre affineur. Quantités très limitées.' },
-  { id:5, cat:'pret', name:'Plateau Sushi Premium', merchant:'Sushi Zen', origin:'Local', discount:40, price:14.90, orig:24.90, weight:'32 pièces', expiry:'Ce soir 21h00', timer:'3h 00m', ai:'Fraîcheur garantie · Poisson du jour · Qualité restaurant', badge:'FLASH', badgeColor:'#6366F1', co2:0.2, bg:'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80', photo:'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=200&q=80', desc:'Saumon, thon, crevettes. Disponible jusqu\'à épuisement.' },
-];
-
+  { id:1, cat:"viande", name:"Cote de Boeuf Angus", merchant:"Boucherie Fabre", origin:"VAR", discount:60, price:18.90, orig:47.20, weight:"1.2 kg", expiry:"Aujourd'hui 20h00", timer:"4h 23m", ai:"Persillage excellent - Couleur optimale - Fraicheur OK", badge:"BIM TERROIR", badgeColor:"#10B981", co2:1.4, bg:"https://images.unsplash.com/photo-1558030006-450675393462?w=600&q=80", photo:"https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=200&q=80", desc:"Race Angus elevee en plein air, alimentation 100% naturelle." },
+  { id:2, cat:"cave", name:"Lot 12 Rose Provence", merchant:"Cave Cooperative", origin:"AOP", discount:45, price:54, orig:98, weight:"12 x 75cl", expiry:"Demain 18h00", timer:"22h 00m", ai:null, badge:"ENCHERE", badgeColor:"#F97316", co2:0.8, bg:"https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80", photo:"https://images.unsplash.com/photo-1474722883778-792e7990302f?w=200&q=80", desc:"Cuvee Tradition, recoltee a la main. Parfait pour l'ete." },
+  { id:3, cat:"primeur", name:"Tomates Coeur de Boeuf", merchant:"Maraicher Bonnet", origin:"VAR", discount:50, price:2.40, orig:4.80, weight:"2 kg", expiry:"Aujourd'hui 22h00", timer:"2h 10m", ai:"Maturite optimale - Arome intense - Calibre A", badge:"BIM TERROIR", badgeColor:"#10B981", co2:0.3, bg:"https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=600&q=80", photo:"https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=200&q=80", desc:"Variete ancienne, sans traitement chimique." },
+  { id:4, cat:"laitier", name:"Comte AOP 24 mois", merchant:"Fromagerie Martin", origin:"Jura", discount:35, price:12.50, orig:19.20, weight:"500g", expiry:"Dans 3 jours", timer:"72h 00m", ai:"Affinage parfait - Notes noisette - Texture ideale", badge:"PRIX CHOC", badgeColor:"#F97316", co2:0.5, bg:"https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80", photo:"https://images.unsplash.com/photo-1452195100486-9cc805987862?w=200&q=80", desc:"Selectionne par notre affineur. Quantites tres limitees." },
+  { id:5, cat:"pret", name:"Plateau Sushi Premium", merchant:"Sushi Zen", origin:"Local", discount:40, price:14.90, orig:24.90, weight:"32 pieces", expiry:"Ce soir 21h00", timer:"3h 00m", ai:"Fraicheur garantie - Poisson du jour - Qualite restaurant", badge:"FLASH", badgeColor:"#6366F1", co2:0.2, bg:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80", photo:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=200&q=80", desc:"Saumon, thon, crevettes. Stock limite." },
+]
 let cart = [];
 let currentCat = 'all';
 let dismissed = [];
@@ -405,7 +528,7 @@ function renderDeal() {
           <div>
             <div class="deal-original">${d.orig}€</div>
             <div class="deal-price">${d.price}€</div>
-            <div class="deal-eco">Économie : ${(d.orig - d.price).toFixed(2)}€</div>
+            <div class="deal-eco">Economie : ${(d.orig - d.price).toFixed(2)}€</div>
           </div>
           <div style="text-align:right">
             <div class="deal-co2">🌿 -${d.co2}kg CO₂<br>${d.expiry}</div>
@@ -437,7 +560,7 @@ function addToCart(id) {
   if (existing) existing.qty++;
   else cart.push({...deal, qty: 1});
   updateCartBadge();
-  showToast('🛒 Ajouté au panier !');
+  showToast('🛒 Ajoute au panier !');
 }
 
 function addCurrentToCart() {
@@ -483,14 +606,14 @@ function showTab(tab) {
 function renderCart() {
   const el = document.getElementById('cart-content');
   if (!cart.length) {
-    el.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><h3>Votre panier est vide</h3><p>Swipez à droite sur un deal pour ajouter des produits</p></div>';
+    el.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><h3>Votre panier est vide</h3><p>Swipez a droite sur un deal pour ajouter des produits</p></div>';
     return;
   }
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const saved = cart.reduce((s, i) => s + (i.orig - i.price) * i.qty, 0);
   el.innerHTML = `
     <div class="cart-header"><div><div class="cart-title">Mon Panier</div><div class="cart-subtitle">${cart.length} article${cart.length>1?'s':''}</div></div><button class="btn-clear" onclick="cart=[];updateCartBadge();renderCart()">🗑 Vider</button></div>
-    <div class="savings-banner"><span class="savings-label">🌿 Vous économisez</span><span class="savings-amount">${saved.toFixed(2)}€</span></div>
+    <div class="savings-banner"><span class="savings-label">🌿 Vous economisez</span><span class="savings-amount">${saved.toFixed(2)}€</span></div>
     ${cart.map(item => `
     <div class="cart-item">
       <img class="cart-img" src="${item.photo}" alt="${item.name}" loading="lazy" />
@@ -512,7 +635,7 @@ function renderCart() {
       <div class="total-row main"><span>Total</span><span>${total.toFixed(2)}€</span></div>
     </div>
     <button class="btn-order" id="btn-order" onclick="order()">⚡ Commander · ${total.toFixed(2)}€</button>
-    <p style="text-align:center;font-size:11px;color:#475569;margin-top:8px;padding-bottom:8px">Livraison par BIM-Ride · Zéro émission supplémentaire 🌿</p>`;
+    <p style="text-align:center;font-size:11px;color:#475569;margin-top:8px;padding-bottom:8px">Livraison par BIM-Ride · Zero emission supplementaire 🌿</p>`;
 }
 
 function updateQty(id, delta) {
@@ -526,7 +649,7 @@ function updateQty(id, delta) {
 
 function order() {
   const btn = document.getElementById('btn-order');
-  if (btn) { btn.textContent = '✅ Commande confirmée !'; btn.classList.add('done'); }
+  if (btn) { btn.textContent = '✅ Commande confirmee !'; btn.classList.add('done'); }
 }
 
 // LIVE
@@ -535,61 +658,282 @@ function bid(priceId, bidsId) {
   const b = document.getElementById(bidsId);
   p.textContent = (parseInt(p.textContent) + 5) + '€';
   b.textContent = (parseInt(b.textContent) + 1) + ' mises';
-  showToast('💰 Mise enregistrée !');
+  showToast('💰 Mise enregistree !');
 }
 
-// MERCHANT
+// PRO TABS
+function showProTab(tab) {
+  ['voice','camera','manual','mydeals'].forEach(t => {
+    document.getElementById('protab-'+t).style.display = 'none';
+    const btn = document.getElementById('ptab-'+t);
+    if (btn) { btn.style.background = '#1e293b'; btn.style.color = '#94a3b8'; }
+  });
+  document.getElementById('protab-'+tab).style.display = 'block';
+  const activeBtn = document.getElementById('ptab-'+tab);
+  if (activeBtn) { activeBtn.style.background = '#f97316'; activeBtn.style.color = 'white'; }
+}
+
+// VOICE RECOGNITION
 let isRecording = false;
-let recInterval = null;
-const DEMO = "Côte de bœuf Angus 5 kg à moins 40 pourcent";
+let recognition = null;
 
 function toggleMic() {
   const btn = document.getElementById('mic-btn');
   const hint = document.getElementById('mic-hint');
+  const status = document.getElementById('mic-status');
   const box = document.getElementById('transcript-box');
   const txt = document.getElementById('transcript-text');
   const parsed = document.getElementById('parsed-result');
-  if (isRecording) {
-    isRecording = false;
-    clearInterval(recInterval);
-    btn.classList.remove('recording');
-    btn.textContent = '🎤';
-    hint.textContent = 'Appuyez pour dicter votre offre';
-    setTimeout(() => { parsed.style.display = 'block'; }, 400);
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    // REAL speech recognition
+    if (isRecording) {
+      if (recognition) recognition.stop();
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'fr-FR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onstart = () => {
+      isRecording = true;
+      btn.classList.add('recording');
+      btn.textContent = '🛑';
+      hint.textContent = 'Parlez maintenant...';
+      box.style.display = 'block';
+      status.textContent = '🔴 Enregistrement en cours...';
+    };
+    recognition.onresult = (e) => {
+      let transcript = '';
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      txt.textContent = transcript;
+    };
+    recognition.onend = () => {
+      isRecording = false;
+      btn.classList.remove('recording');
+      btn.textContent = '🎤';
+      hint.textContent = 'Appuyez pour parler';
+      status.textContent = '✅ Termine — Remplissage automatique...';
+      const transcript = txt.textContent;
+      if (transcript) {
+        setTimeout(() => { parseVoice(transcript); parsed.style.display = 'block'; status.textContent = ''; }, 500);
+      }
+    };
+    recognition.onerror = (e) => {
+      isRecording = false;
+      btn.classList.remove('recording');
+      btn.textContent = '🎤';
+      status.textContent = '⚠️ Micro non autorise — Autorisez le micro dans votre navigateur';
+      hint.textContent = 'Appuyez pour parler';
+    };
+    recognition.start();
   } else {
+    // Demo fallback
+    if (isRecording) {
+      isRecording = false;
+      clearInterval(window._recInterval);
+      btn.classList.remove('recording');
+      btn.textContent = '🎤';
+      hint.textContent = 'Appuyez pour parler';
+      parseVoice(txt.textContent);
+      parsed.style.display = 'block';
+      return;
+    }
     isRecording = true;
     btn.classList.add('recording');
     btn.textContent = '🛑';
-    hint.textContent = 'Parlez maintenant...';
+    hint.textContent = 'Parlez maintenant... (mode demo)';
     box.style.display = 'block';
     parsed.style.display = 'none';
     txt.textContent = '';
+    status.textContent = '⚠️ Mode demo (navigateur sans reconnaissance vocale)';
+    const DEMO = "Cote de boeuf Angus 1.2 kg a moins 40 pourcent prix 18 euros 90";
     let i = 0;
-    recInterval = setInterval(() => {
+    window._recInterval = setInterval(() => {
       if (i <= DEMO.length) { txt.textContent = DEMO.slice(0,i); i++; }
-      else { clearInterval(recInterval); isRecording = false; btn.classList.remove('recording'); btn.textContent = '🎤'; hint.textContent = 'Appuyez pour dicter votre offre'; setTimeout(() => { parsed.style.display = 'block'; }, 400); }
+      else {
+        clearInterval(window._recInterval);
+        isRecording = false;
+        btn.classList.remove('recording');
+        btn.textContent = '🎤';
+        hint.textContent = 'Appuyez pour parler';
+        status.textContent = '';
+        parseVoice(txt.textContent);
+        parsed.style.display = 'block';
+      }
     }, 40);
   }
 }
 
-function publish() {
-  const btn = document.getElementById('btn-publish');
-  btn.textContent = '✅ Offre publiée !';
-  btn.classList.add('done');
-  showToast('🚀 Offre flash publiée !');
+function parseVoice(text) {
+  const t = text.toLowerCase();
+  // Extract product name (first words before quantity/price keywords)
+  const nameMatch = t.match(/^(.+?)(?:(?:\d)|(?:kg|g |litre|piece|euro|moins|remise|pourcent))/);
+  document.getElementById('v-name').value = nameMatch ? nameMatch[1].trim().replace(/^\w/, c => c.toUpperCase()) : text.split(' ').slice(0,3).join(' ');
+  // Price
+  const priceMatch = t.match(/(\d+)[.,\s](\d+)\s*euro/) || t.match(/(\d+)\s*euro/);
+  if (priceMatch) document.getElementById('v-price').value = priceMatch[2] ? priceMatch[1]+'.'+priceMatch[2] : priceMatch[1];
+  // Discount
+  const discountMatch = t.match(/(\d+)\s*(?:pourcent|%|pour cent)/);
+  if (discountMatch) document.getElementById('v-discount').value = discountMatch[1];
+  // Qty
+  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|litre|l |piece|unite|carton)/);
+  if (qtyMatch) document.getElementById('v-qty').value = qtyMatch[1] + ' ' + qtyMatch[2];
 }
 
-function analyzePhoto() {
-  const btn = document.getElementById('photo-btn');
-  btn.textContent = '⏳ Analyse en cours...';
-  setTimeout(() => { btn.innerHTML = '✅ Fraîcheur confirmée<br><span style="font-size:12px">Persillage excellent · Couleur optimale · Texture A+</span>'; btn.style.color = '#34d399'; btn.style.borderColor = '#34d399'; }, 2000);
+// CAMERA
+function handlePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById('camera-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('camera-placeholder').style.display = 'none';
+    // Simulate AI analysis
+    const analysis = document.getElementById('ai-analysis-result');
+    const analysisText = document.getElementById('ai-analysis-text');
+    analysisText.textContent = '⏳ Analyse en cours...';
+    analysis.style.display = 'block';
+    setTimeout(() => {
+      analysisText.textContent = '✅ Fraicheur confirmee · Aspect visuel optimal · Qualite A+ · Pret a vendre';
+      document.getElementById('camera-form').style.display = 'block';
+    }, 1500);
+  };
+  reader.readAsDataURL(file);
 }
 
-function launch(id) {
-  const btn = document.getElementById(id);
-  btn.textContent = '✓ Lancé';
-  btn.classList.add('done');
-  showToast('⚡ Offre lancée !');
+// MANUAL
+let selectedExpiry = "Aujourd'hui";
+function setExpiry(btn, val) {
+  selectedExpiry = val;
+  document.querySelectorAll('.expiry-btn').forEach(b => { b.style.background = '#1e293b'; b.style.color = '#94a3b8'; b.style.borderColor = '#334155'; });
+  btn.style.background = 'rgba(249,115,22,0.2)';
+  btn.style.color = '#f97316';
+  btn.style.borderColor = '#f97316';
+}
+
+function calcPrice() {
+  const orig = parseFloat(document.getElementById('m-orig').value);
+  const disc = parseFloat(document.getElementById('m-discount').value);
+  const el = document.getElementById('m-flash-price');
+  if (orig && disc) el.textContent = (orig * (1 - disc/100)).toFixed(2) + '€';
+  else el.textContent = '—';
+}
+
+let manualPhotoData = null;
+function handleManualPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    manualPhotoData = e.target.result;
+    const btn = document.getElementById('m-photo-btn');
+    btn.innerHTML = '<img src="'+e.target.result+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:8px" /> Photo ajoutee ✅';
+    btn.style.color = '#34d399';
+    btn.style.borderColor = '#34d399';
+  };
+  reader.readAsDataURL(file);
+}
+
+// PUBLISH
+let myOffers = [];
+
+function publishOffer(source) {
+  let offer = {};
+  if (source === 'manual') {
+    const name = document.getElementById('m-name').value.trim();
+    const merchant = document.getElementById('m-merchant').value.trim();
+    const orig = parseFloat(document.getElementById('m-orig').value);
+    const disc = parseFloat(document.getElementById('m-discount').value);
+    if (!name || !orig || !disc) { showToast('⚠️ Remplissez les champs obligatoires'); return; }
+    offer = {
+      id: Date.now(), name, merchant: merchant || 'Mon commerce',
+      price: parseFloat((orig*(1-disc/100)).toFixed(2)), orig, discount: disc,
+      weight: document.getElementById('m-qty').value || '',
+      desc: document.getElementById('m-desc').value || '',
+      cat: document.getElementById('m-cat').value,
+      expiry: selectedExpiry,
+      photo: manualPhotoData || null,
+      badge: 'FLASH', badgeColor: '#f97316', source: 'manuel'
+    };
+  } else if (source === 'voice') {
+    const name = document.getElementById('v-name').value.trim();
+    const price = parseFloat(document.getElementById('v-price').value);
+    const disc = parseFloat(document.getElementById('v-discount').value);
+    if (!name) { showToast("Dictez votre offre d'abord"); return; }
+    offer = {
+      id: Date.now(), name, merchant: 'Mon commerce',
+      price: price || 0, orig: price ? price/(1-disc/100) : 0, discount: disc || 0,
+      weight: document.getElementById('v-qty').value || '',
+      expiry: "Aujourd'hui", badge: "FLASH", badgeColor: "#f97316", source: "vocal"
+    };
+  } else if (source === 'camera') {
+    const name = document.getElementById('c-name').value.trim();
+    const price = parseFloat(document.getElementById('c-price').value);
+    const disc = parseFloat(document.getElementById('c-discount').value);
+    if (!name) { showToast('⚠️ Remplissez le nom du produit'); return; }
+    const img = document.getElementById('camera-img');
+    offer = {
+      id: Date.now(), name, merchant: document.getElementById('c-merchant').value || 'Mon commerce',
+      price: price || 0, orig: price ? parseFloat((price/(1-disc/100)).toFixed(2)) : 0, discount: disc || 0,
+      weight: document.getElementById('c-qty').value || '',
+      expiry: "Aujourd'hui", badge: "FLASH", badgeColor: "#f97316",
+      photo: img.style.display !== 'none' ? img.src : null, source: 'photo'
+    };
+  }
+
+  myOffers.unshift(offer);
+
+  // Also add to main deals feed
+  DEALS.unshift({
+    id: offer.id, cat: offer.cat || 'pret', name: offer.name,
+    merchant: offer.merchant, origin: 'Local',
+    discount: offer.discount, price: offer.price, orig: offer.orig,
+    weight: offer.weight, expiry: offer.expiry,
+    timer: '24h 00m', ai: null,
+    badge: offer.badge, badgeColor: offer.badgeColor,
+    co2: 0.3, bg: offer.photo || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+    photo: offer.photo || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80',
+    desc: offer.desc || ''
+  });
+
+  showToast('🚀 Offre publiee dans le feed !');
+  showProTab('mydeals');
+  renderMyDeals();
+}
+
+function renderMyDeals() {
+  const el = document.getElementById('mydeals-list');
+  if (!myOffers.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:48px;margin-bottom:12px">📦</div><p style="font-weight:700">Aucune offre publiee</p><p style="font-size:13px;margin-top:8px">Creez votre premiere offre dans les onglets Vocal, Camera ou Manuel</p></div>';
+    return;
+  }
+  el.innerHTML = myOffers.map(o => `
+    <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:16px;padding:16px;margin-bottom:12px;display:flex;gap:12px;align-items:center">
+      ${o.photo ? `<img src="${o.photo}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0" />` : `<div style="width:64px;height:64px;border-radius:12px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">📦</div>`}
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <span style="background:${o.badgeColor};color:white;font-size:9px;font-weight:900;padding:2px 8px;border-radius:999px">${o.badge}</span>
+          <span style="font-size:10px;color:#64748b">${o.source}</span>
+        </div>
+        <p style="font-weight:700;font-size:14px">${o.name}</p>
+        <p style="font-size:12px;color:#64748b">${o.merchant} · ${o.weight || ''}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+          <span style="font-size:18px;font-weight:900;color:#34d399">${o.price}€ <span style="font-size:12px;color:#475569;text-decoration:line-through">${o.orig ? o.orig.toFixed(2)+'€' : ''}</span></span>
+          <span style="font-size:11px;color:#f97316;font-weight:700">-${o.discount}% · ${o.expiry}</span>
+        </div>
+      </div>
+      <button onclick="deleteOffer(${o.id})" style="background:#1e293b;border:none;border-radius:8px;padding:8px;color:#ef4444;cursor:pointer;font-size:16px">🗑</button>
+    </div>`).join('');
+}
+
+function deleteOffer(id) {
+  myOffers = myOffers.filter(o => o.id !== id);
+  renderMyDeals();
+  showToast('🗑 Offre supprimee');
 }
 
 // INIT
