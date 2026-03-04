@@ -748,6 +748,192 @@
       </button>
     </div>
   </div>
+  <!-- PROFILE VIEW -->
+  <div id="view-profile" style="display:none;padding-bottom:80px">
+
+    <!-- Not logged in -->
+    <div id="profile-logged-out" style="display:flex;flex-direction:column;align-items:center;padding:40px 24px;text-align:center">
+      <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#f97316,#10b981);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:20px">👤</div>
+      <h2 style="font-size:22px;font-weight:900;margin-bottom:8px">Mon Compte</h2>
+      <p style="color:#64748b;font-size:14px;margin-bottom:28px">Créez votre compte pour accéder aux favoris, notifications et offres personnalisées</p>
+      <button onclick="showProfilePanel('register')" style="width:100%;max-width:320px;padding:16px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:16px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3);margin-bottom:12px">
+        ✨ Créer mon compte
+      </button>
+      <button onclick="showProfilePanel('login')" style="width:100%;max-width:320px;padding:16px;background:#1e293b;color:white;border:1px solid #334155;border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+        🔑 Se connecter
+      </button>
+    </div>
+
+    <!-- Register panel -->
+    <div id="profile-register" style="display:none;padding:20px">
+      <button onclick="showProfilePanel('out')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-bottom:16px;font-family:Montserrat,sans-serif">← Retour</button>
+      <h2 style="font-size:20px;font-weight:900;margin-bottom:20px">Créer mon compte</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">PRÉNOM</label>
+          <input id="reg-prenom" placeholder="ex: Sophie" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM</label>
+          <input id="reg-nom" placeholder="ex: Dupont" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">EMAIL</label>
+          <input id="reg-email" type="email" placeholder="ex: sophie@email.com" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">MOT DE PASSE</label>
+          <input id="reg-pwd" type="password" placeholder="••••••••" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">VILLE</label>
+          <input id="reg-ville" placeholder="ex: Fayence" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <p id="reg-client-error" style="color:#ef4444;font-size:12px;display:none;text-align:center"></p>
+        <button onclick="doClientRegister()" style="width:100%;padding:16px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;margin-top:4px">
+          ✨ Créer mon compte
+        </button>
+      </div>
+    </div>
+
+    <!-- Login panel -->
+    <div id="profile-login" style="display:none;padding:20px">
+      <button onclick="showProfilePanel('out')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-bottom:16px;font-family:Montserrat,sans-serif">← Retour</button>
+      <h2 style="font-size:20px;font-weight:900;margin-bottom:20px">Connexion</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">EMAIL</label>
+          <input id="login-email-client" type="email" placeholder="ex: sophie@email.com" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">MOT DE PASSE</label>
+          <input id="login-pwd-client" type="password" placeholder="••••••••" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <p id="login-client-error" style="color:#ef4444;font-size:12px;display:none;text-align:center"></p>
+        <button onclick="doClientLogin()" style="width:100%;padding:16px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif">
+          🔑 Se connecter
+        </button>
+      </div>
+    </div>
+
+    <!-- Logged in dashboard -->
+    <div id="profile-dashboard" style="display:none">
+      <!-- Header avatar -->
+      <div style="background:linear-gradient(160deg,#1e293b,#0f172a);padding:28px 20px 20px">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+          <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f97316,#10b981);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:white;flex-shrink:0;border:3px solid #f97316"></div>
+          <div>
+            <h2 id="profile-fullname" style="font-size:20px;font-weight:900;margin:0 0 4px"></h2>
+            <p id="profile-email-display" style="font-size:13px;color:#64748b;margin:0"></p>
+            <p id="profile-ville-display" style="font-size:12px;color:#f97316;margin:4px 0 0">📍 </p>
+          </div>
+        </div>
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:14px;padding:12px;text-align:center">
+            <p id="stat-favs" style="font-size:22px;font-weight:900;color:#f97316;margin:0">0</p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin:2px 0 0">FAVORIS</p>
+          </div>
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:14px;padding:12px;text-align:center">
+            <p id="stat-saves" style="font-size:22px;font-weight:900;color:#34d399;margin:0">0€</p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin:2px 0 0">ÉCONOMISÉ</p>
+          </div>
+          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:12px;text-align:center">
+            <p id="stat-co2" style="font-size:22px;font-weight:900;color:#818cf8;margin:0">0kg</p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin:2px 0 0">CO₂ ÉVITÉ</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:16px">
+
+        <!-- Notifications section -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:22px">🔔</span>
+              <div>
+                <p style="font-size:15px;font-weight:900;margin:0">Notifications</p>
+                <p style="font-size:11px;color:#64748b;margin:2px 0 0">Alertes produits en temps réel</p>
+              </div>
+            </div>
+            <div id="notif-toggle-wrap">
+              <button id="notif-toggle-btn" onclick="toggleNotifications()" style="padding:10px 16px;background:#f97316;color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+                Activer
+              </button>
+            </div>
+          </div>
+          <div id="notif-status-bar" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0;animation:pulse 1s infinite"></span>
+            <span style="font-size:12px;color:#6ee7b7;font-weight:700">Notifications actives — vous serez alerté des nouvelles offres</span>
+          </div>
+        </div>
+
+        <!-- Périmètre -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:22px">📍</span>
+            <div>
+              <p style="font-size:15px;font-weight:900;margin:0">Périmètre de recherche</p>
+              <p style="font-size:11px;color:#64748b;margin:2px 0 0">Alertes dans ce rayon autour de vous</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:14px;font-weight:700">Rayon :</span>
+            <span id="radius-display" style="font-size:18px;font-weight:900;color:#f97316">10 km</span>
+          </div>
+          <input type="range" id="radius-slider" min="1" max="50" value="10" oninput="updateRadius(this.value)"
+            style="width:100%;accent-color:#f97316;cursor:pointer"/>
+          <div style="display:flex;justify-content:space-between;margin-top:4px">
+            <span style="font-size:10px;color:#475569">1 km</span>
+            <span style="font-size:10px;color:#475569">50 km</span>
+          </div>
+          <!-- Zone presets -->
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button onclick="setRadius(5)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:999px;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">5 km</button>
+            <button onclick="setRadius(10)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.2);border:1px solid #f97316;border-radius:999px;color:#f97316;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">10 km</button>
+            <button onclick="setRadius(20)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:999px;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">20 km</button>
+            <button onclick="setRadius(50)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:999px;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">50 km</button>
+          </div>
+        </div>
+
+        <!-- Catégories favorites -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:22px">❤️</span>
+            <div>
+              <p style="font-size:15px;font-weight:900;margin:0">Mes catégories</p>
+              <p style="font-size:11px;color:#64748b;margin:2px 0 0">Recevoir des alertes pour ces produits</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button onclick="toggleFavCat(this,'viande')" data-cat="viande" class="fav-cat-btn" style="padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥩 Viande</button>
+            <button onclick="toggleFavCat(this,'cave')" data-cat="cave" class="fav-cat-btn" style="padding:10px 14px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;color:#c4b5fd;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍷 Cave</button>
+            <button onclick="toggleFavCat(this,'primeur')" data-cat="primeur" class="fav-cat-btn" style="padding:10px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;color:#6ee7b7;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥦 Primeur</button>
+            <button onclick="toggleFavCat(this,'laitier')" data-cat="laitier" class="fav-cat-btn" style="padding:10px 14px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:12px;color:#fde68a;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🧀 Laitier</button>
+            <button onclick="toggleFavCat(this,'pret')" data-cat="pret" class="fav-cat-btn" style="padding:10px 14px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;color:#93c5fd;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍱 Prêt</button>
+          </div>
+        </div>
+
+        <!-- Produits favoris -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:22px">⭐</span>
+            <p style="font-size:15px;font-weight:900;margin:0">Mes produits favoris</p>
+          </div>
+          <div id="fav-products-list">
+            <p style="font-size:13px;color:#475569;text-align:center;padding:12px">Appuyez sur ❤️ sur un deal pour l'ajouter</p>
+          </div>
+        </div>
+
+        <!-- Déconnexion -->
+        <button onclick="logoutClient()" style="width:100%;padding:14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:14px;color:#ef4444;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- TOAST -->
@@ -759,6 +945,7 @@
   <button class="nav-btn" id="nav-live" onclick="showTab('live')"><span class="nav-icon">🔥</span><span class="nav-label">Live</span><span class="nav-dot"></span></button>
   <button class="nav-btn" id="nav-bimride" onclick="showTab('bimride')"><span class="nav-icon">🚗</span><span class="nav-label">BIM-Ride</span></button>
   <button class="nav-btn" id="nav-b2b" onclick="showTab('b2b')"><span class="nav-icon">📊</span><span class="nav-label">B2B</span></button>
+  <button class="nav-btn" id="nav-profile" onclick="showTab('profile')" style="position:relative"><span class="nav-icon">👤</span><span class="nav-label">Compte</span><span id="profile-dot" style="display:none;position:absolute;top:4px;right:14px;width:8px;height:8px;border-radius:50%;background:#34d399"></span></button>
 </nav>
 
 <script>
@@ -906,7 +1093,7 @@ function showTab(tab) {
     openMerchantSpace();
     return;
   }
-  ['feed','live','bimride','b2b','cart'].forEach(function(t) {
+  ['feed','live','bimride','b2b','cart','profile'].forEach(function(t) {
     const v = document.getElementById('view-'+t);
     const n = document.getElementById('nav-'+t);
     if (v) v.style.display = 'none';
@@ -921,6 +1108,8 @@ function showTab(tab) {
   updateCartBadge();
   if (tab === 'cart') {
     renderCart();
+  } else if (tab === 'profile') {
+    renderProfileView();
   } else if (tab === 'bimride') {
     setTimeout(function() { initRideMap(); renderRunnersList(); }, 150);
   } else {
@@ -2000,6 +2189,346 @@ function becomeRunner() { showToast('Inscription BIM-Runner - bientot disponible
 
 
 
+
+// ============================================
+// CLIENT ACCOUNT + NOTIFICATIONS
+// ============================================
+
+var currentClient = null;
+var notifEnabled = false;
+var clientRadius = 10;
+var favCategories = [];
+var favProducts = [];
+
+function showProfilePanel(panel) {
+  document.getElementById('profile-logged-out').style.display = 'none';
+  document.getElementById('profile-register').style.display = 'none';
+  document.getElementById('profile-login').style.display = 'none';
+  document.getElementById('profile-dashboard').style.display = 'none';
+  if (panel === 'out') document.getElementById('profile-logged-out').style.display = 'flex';
+  else if (panel === 'register') document.getElementById('profile-register').style.display = 'block';
+  else if (panel === 'login') document.getElementById('profile-login').style.display = 'block';
+  else if (panel === 'dashboard') document.getElementById('profile-dashboard').style.display = 'block';
+}
+
+function doClientRegister() {
+  var prenom = document.getElementById('reg-prenom').value.trim();
+  var nom = document.getElementById('reg-nom').value.trim();
+  var email = document.getElementById('reg-email').value.trim();
+  var pwd = document.getElementById('reg-pwd').value;
+  var ville = document.getElementById('reg-ville').value.trim();
+  var err = document.getElementById('reg-client-error');
+
+  if (!prenom || !nom) { err.textContent = 'Entrez votre prénom et nom'; err.style.display = 'block'; return; }
+  if (!email || !email.includes('@')) { err.textContent = 'Email invalide'; err.style.display = 'block'; return; }
+  if (pwd.length < 4) { err.textContent = 'Mot de passe trop court (4 caractères min)'; err.style.display = 'block'; return; }
+
+  err.style.display = 'none';
+
+  // Check if email already used
+  var existing = null;
+  try { existing = JSON.parse(localStorage.getItem('bim_client_' + email)); } catch(e) {}
+  if (existing) { err.textContent = 'Email deja utilise — connectez-vous'; err.style.display = 'block'; return; }
+
+  var account = {
+    prenom: prenom, nom: nom, email: email,
+    pwd: pwd, ville: ville || 'Fayence',
+    joinDate: new Date().toLocaleDateString('fr-FR'),
+    radius: 10, favCats: [], favProducts: [], savedAmount: 0, co2: 0
+  };
+
+  localStorage.setItem('bim_client_' + email, JSON.stringify(account));
+  currentClient = account;
+  localStorage.setItem('bim_current_client', email);
+  showToast('Bienvenue ' + prenom + '! Compte cree');
+  renderProfileView();
+}
+
+function doClientLogin() {
+  var email = document.getElementById('login-email-client').value.trim();
+  var pwd = document.getElementById('login-pwd-client').value;
+  var err = document.getElementById('login-client-error');
+
+  var account = null;
+  try { account = JSON.parse(localStorage.getItem('bim_client_' + email)); } catch(e) {}
+  if (!account) { err.textContent = 'Compte introuvable'; err.style.display = 'block'; return; }
+  if (account.pwd !== pwd) { err.textContent = 'Mot de passe incorrect'; err.style.display = 'block'; return; }
+
+  err.style.display = 'none';
+  currentClient = account;
+  localStorage.setItem('bim_current_client', email);
+  clientRadius = account.radius || 10;
+  favCategories = account.favCats || [];
+  favProducts = account.favProducts || [];
+  showToast('Bienvenue ' + account.prenom + '!');
+  renderProfileView();
+}
+
+function logoutClient() {
+  currentClient = null;
+  localStorage.removeItem('bim_current_client');
+  notifEnabled = false;
+  renderProfileView();
+  showToast('Deconnecte');
+}
+
+function renderProfileView() {
+  if (!currentClient) {
+    showProfilePanel('out');
+    document.getElementById('profile-dot').style.display = 'none';
+    return;
+  }
+  showProfilePanel('dashboard');
+  document.getElementById('profile-dot').style.display = 'block';
+
+  // Fill info
+  var initials = currentClient.prenom[0] + currentClient.nom[0];
+  document.getElementById('profile-avatar-big').textContent = initials.toUpperCase();
+  document.getElementById('profile-fullname').textContent = currentClient.prenom + ' ' + currentClient.nom;
+  document.getElementById('profile-email-display').textContent = currentClient.email;
+  document.getElementById('profile-ville-display').textContent = '📍 ' + (currentClient.ville || 'Fayence');
+
+  // Stats
+  favProducts = currentClient.favProducts || [];
+  favCategories = currentClient.favCats || [];
+  clientRadius = currentClient.radius || 10;
+
+  document.getElementById('stat-favs').textContent = favProducts.length;
+  document.getElementById('stat-saves').textContent = (currentClient.savedAmount || 0).toFixed(0) + 'EUR';
+  document.getElementById('stat-co2').textContent = (currentClient.co2 || 0).toFixed(1) + 'kg';
+
+  // Radius
+  document.getElementById('radius-slider').value = clientRadius;
+  document.getElementById('radius-display').textContent = clientRadius + ' km';
+
+  // Fav categories highlight
+  document.querySelectorAll('.fav-cat-btn').forEach(function(btn) {
+    var cat = btn.getAttribute('data-cat');
+    if (favCategories.indexOf(cat) !== -1) {
+      btn.style.opacity = '1';
+      btn.style.boxShadow = '0 0 0 2px #f97316';
+    } else {
+      btn.style.opacity = '0.5';
+      btn.style.boxShadow = 'none';
+    }
+  });
+
+  // Fav products
+  renderFavProducts();
+
+  // Notif button
+  var notifBtn = document.getElementById('notif-toggle-btn');
+  var notifBar = document.getElementById('notif-status-bar');
+  if (notifEnabled || Notification.permission === 'granted') {
+    notifBtn.textContent = '✅ Active';
+    notifBtn.style.background = '#10b981';
+    notifBar.style.display = 'flex';
+  } else {
+    notifBtn.textContent = 'Activer';
+    notifBtn.style.background = '#f97316';
+    notifBar.style.display = 'none';
+  }
+}
+
+function renderFavProducts() {
+  var el = document.getElementById('fav-products-list');
+  if (!el) return;
+  if (!favProducts.length) {
+    el.innerHTML = '<p style="font-size:13px;color:#475569;text-align:center;padding:12px">Appuyez sur le coeur sur un deal pour l\'ajouter</p>';
+    return;
+  }
+  el.innerHTML = favProducts.map(function(id) {
+    var deal = DEALS.find(function(d) { return d.id === id; });
+    if (!deal) return '';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#0f172a;border-radius:12px;margin-bottom:8px">'
+      + '<img src="' + (deal.photo||deal.bg||'') + '" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0" />'
+      + '<div style="flex:1"><p style="font-size:13px;font-weight:700;margin:0">' + deal.name + '</p>'
+      + '<p style="font-size:11px;color:#64748b;margin:2px 0 0">' + deal.merchant + ' &bull; ' + deal.price.toFixed(2) + 'EUR</p></div>'
+      + '<button onclick="removeFavProduct(' + id + ')" style="background:none;border:none;color:#ef4444;font-size:18px;cursor:pointer;padding:4px">&#10005;</button>'
+      + '</div>';
+  }).filter(Boolean).join('');
+}
+
+function toggleFavProduct(id) {
+  if (!currentClient) { showTab('profile'); showToast('Connectez-vous pour ajouter des favoris'); return; }
+  var idx = favProducts.indexOf(id);
+  if (idx === -1) {
+    favProducts.push(id);
+    showToast('❤️ Ajoute aux favoris!');
+  } else {
+    favProducts.splice(idx, 1);
+    showToast('Retire des favoris');
+  }
+  currentClient.favProducts = favProducts;
+  saveClientData();
+  if (currentClient) document.getElementById('stat-favs').textContent = favProducts.length;
+}
+
+function removeFavProduct(id) {
+  favProducts = favProducts.filter(function(x) { return x !== id; });
+  currentClient.favProducts = favProducts;
+  saveClientData();
+  renderFavProducts();
+  document.getElementById('stat-favs').textContent = favProducts.length;
+}
+
+function toggleFavCat(btn, cat) {
+  if (!currentClient) return;
+  var idx = favCategories.indexOf(cat);
+  if (idx === -1) {
+    favCategories.push(cat);
+    btn.style.opacity = '1';
+    btn.style.boxShadow = '0 0 0 2px #f97316';
+    showToast('🔔 Alertes ' + cat + ' activees');
+  } else {
+    favCategories.splice(idx, 1);
+    btn.style.opacity = '0.5';
+    btn.style.boxShadow = 'none';
+  }
+  currentClient.favCats = favCategories;
+  saveClientData();
+}
+
+function updateRadius(val) {
+  clientRadius = parseInt(val);
+  document.getElementById('radius-display').textContent = clientRadius + ' km';
+  if (currentClient) {
+    currentClient.radius = clientRadius;
+    saveClientData();
+  }
+}
+
+function setRadius(val) {
+  clientRadius = val;
+  document.getElementById('radius-slider').value = val;
+  document.getElementById('radius-display').textContent = val + ' km';
+  if (currentClient) {
+    currentClient.radius = val;
+    saveClientData();
+  }
+  // Update preset button styles
+  document.querySelectorAll('.radius-preset').forEach(function(btn) {
+    var v = parseInt(btn.textContent);
+    if (v === val) {
+      btn.style.background = 'rgba(249,115,22,0.3)';
+      btn.style.borderColor = '#f97316';
+    } else {
+      btn.style.background = 'rgba(249,115,22,0.1)';
+      btn.style.borderColor = 'rgba(249,115,22,0.3)';
+    }
+  });
+}
+
+function saveClientData() {
+  if (!currentClient) return;
+  localStorage.setItem('bim_client_' + currentClient.email, JSON.stringify(currentClient));
+}
+
+// ── NOTIFICATIONS ────────────────────────────────────────────────────
+
+function toggleNotifications() {
+  if (!('Notification' in window)) {
+    showToast('Notifications non supportees sur ce navigateur');
+    return;
+  }
+  if (Notification.permission === 'granted' || notifEnabled) {
+    notifEnabled = false;
+    var btn = document.getElementById('notif-toggle-btn');
+    btn.textContent = 'Activer';
+    btn.style.background = '#f97316';
+    document.getElementById('notif-status-bar').style.display = 'none';
+    showToast('Notifications desactivees');
+  } else {
+    Notification.requestPermission().then(function(perm) {
+      if (perm === 'granted') {
+        notifEnabled = true;
+        var btn = document.getElementById('notif-toggle-btn');
+        btn.textContent = '✅ Active';
+        btn.style.background = '#10b981';
+        document.getElementById('notif-status-bar').style.display = 'flex';
+        showToast('✅ Notifications activees!');
+        // Send welcome notification
+        setTimeout(function() {
+          sendBimNotif(
+            '🎉 BIM Notifications activées !',
+            'Vous recevrez les meilleures offres flash dans un rayon de ' + clientRadius + ' km',
+            'https://bim-app-nu.vercel.app'
+          );
+        }, 1000);
+        // Start deal monitoring
+        startDealMonitor();
+      } else {
+        showToast('Permission refusee — autorisez dans les reglages Chrome');
+      }
+    });
+  }
+}
+
+function sendBimNotif(title, body, url) {
+  if (Notification.permission !== 'granted') return;
+  try {
+    var n = new Notification(title, {
+      body: body,
+      icon: 'https://bim-app-nu.vercel.app/favicon.ico',
+      badge: 'https://bim-app-nu.vercel.app/favicon.ico',
+      tag: 'bim-deal-' + Date.now(),
+      requireInteraction: false,
+      silent: false
+    });
+    n.onclick = function() {
+      window.focus();
+      if (url) window.location.href = url;
+    };
+  } catch(e) { console.log('Notif error:', e); }
+}
+
+function startDealMonitor() {
+  // Simulate new deal notifications every 30-90 seconds for demo
+  var intervals = [15000, 35000, 60000, 90000];
+  var demoDeals = [
+    { title: '🥩 Entrecôte -60% à Fayence !', body: 'Boucherie Martin: 2.5kg entrecôte fraîche · Flash 24h · 18€ au lieu de 45€', cat: 'viande' },
+    { title: '🥦 Tomates Bio -50% près de chez vous', body: 'Primeurs du Var: 5kg tomates coeur de boeuf · Seulement 8€', cat: 'primeur' },
+    { title: '🍷 Rosé Provence -40% ce soir', body: 'Cave de Fayence: Caisse 6 bouteilles · 24€ au lieu de 40€', cat: 'cave' },
+    { title: '🧀 Fromages AOP -45% chez Jacquet', body: 'Fromagerie Jacquet: Plateau 8 fromages · 22€ au lieu de 40€', cat: 'laitier' }
+  ];
+
+  intervals.forEach(function(delay, i) {
+    setTimeout(function() {
+      if (!notifEnabled || Notification.permission !== 'granted') return;
+      var deal = demoDeals[i % demoDeals.length];
+      // Only notify for fav categories or if no fav categories set
+      if (favCategories.length === 0 || favCategories.indexOf(deal.cat) !== -1) {
+        sendBimNotif(deal.title, deal.body, 'https://bim-app-nu.vercel.app');
+      }
+    }, delay);
+  });
+}
+
+// Load client on startup
+function loadClientSession() {
+  try {
+    var email = localStorage.getItem('bim_current_client');
+    if (email) {
+      var account = JSON.parse(localStorage.getItem('bim_client_' + email));
+      if (account) {
+        currentClient = account;
+        clientRadius = account.radius || 10;
+        favCategories = account.favCats || [];
+        favProducts = account.favProducts || [];
+        // Show green dot on profile tab
+        var dot = document.getElementById('profile-dot');
+        if (dot) dot.style.display = 'block';
+        // Resume notifications if were active
+        if (Notification.permission === 'granted') {
+          notifEnabled = true;
+          startDealMonitor();
+        }
+      }
+    }
+  } catch(e) {}
+}
+
+
 // ============================================
 // MERCHANT LOGIN + DASHBOARD
 // ============================================
@@ -2452,6 +2981,7 @@ function resetDashForm() {
 // INIT
 loadDealsFromStorage();
 renderDeal();
+loadClientSession();
 // Splash screen
 setTimeout(function() {
   var splash = document.getElementById('splash-screen');
