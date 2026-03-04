@@ -170,7 +170,19 @@
     .alert-rev-label { font-size: 10px; color: #64748b; }
     .btn-launch { background: #f97316; color: white; border: none; border-radius: 12px; padding: 10px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
     .btn-launch.done { background: #10b981; }
-  </style>
+    /* BIM-RIDE MAP */
+  #bimride-map { background: #0f172a; }
+  .runner-marker { position: relative; }
+  .runner-dot { width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); cursor: pointer; }
+  .runner-pulse { position: absolute; top: -4px; left: -4px; width: 26px; height: 26px; border-radius: 50%; opacity: 0.6; animation: ripple 1.5s infinite; }
+  @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.2); opacity: 0; } }
+  .leaflet-popup-content-wrapper { background: #1e293b !important; border: 1px solid #334155 !important; border-radius: 14px !important; color: white !important; }
+  .leaflet-popup-tip { background: #1e293b !important; }
+  .leaflet-popup-content { margin: 12px 14px !important; }
+  .leaflet-container { background: #1a2744 !important; font-family: Montserrat,sans-serif; }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -467,26 +479,59 @@
   </div>
 
   <div id="view-bimride" style="display:none">
-    <div style="padding:16px;text-align:center">
-      <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:24px;padding:40px 20px;margin-bottom:16px">
-        <div style="font-size:48px;margin-bottom:16px">🗺️</div>
-        <h2 style="font-size:20px;font-weight:900;margin-bottom:8px">BIM-Ride</h2>
-        <p style="color:#64748b;font-size:14px;margin-bottom:20px">Livraison par vos voisins — Zéro émission supplémentaire 🌿</p>
-        <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:16px;padding:16px;margin-bottom:16px">
-          <p style="color:#6ee7b7;font-weight:700;font-size:13px">🏅 5 BIM-Runners actifs près de Fayence</p>
-        </div>
-        <div style="text-align:left">
-          <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px">
-            <div style="width:48px;height:48px;background:linear-gradient(135deg,#f97316,#ef4444);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0">M</div>
-            <div style="flex:1"><p style="font-weight:700">Marie T.</p><p style="font-size:12px;color:#64748b">Fayence → Callian · 12 min</p></div>
-            <div style="text-align:right"><p style="color:#fb923c;font-weight:700">12 min</p><p style="font-size:10px;color:#64748b">4.9 ⭐</p></div>
+    <!-- HEADER BIM-RIDE -->
+    <div style="padding:12px 16px 0;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="font-size:18px;font-weight:900">BIM-Ride 🚗</h2>
+        <p style="font-size:11px;color:#64748b">Livraison par vos voisins</p>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="setRideView('map')" id="ride-btn-map" style="padding:8px 14px;background:#f97316;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🗺 Carte</button>
+        <button onclick="setRideView('list')" id="ride-btn-list" style="padding:8px 14px;background:#1e293b;color:#94a3b8;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">📋 Liste</button>
+      </div>
+    </div>
+
+    <!-- BADGE RUNNERS ACTIFS -->
+    <div style="margin:10px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;animation:pulse 1s infinite"></span>
+        <span style="font-size:13px;font-weight:700;color:#6ee7b7" id="runners-count">5 BIM-Runners actifs</span>
+      </div>
+      <span style="font-size:11px;color:#34d399;font-weight:700">📍 Fayence</span>
+    </div>
+
+    <!-- MAP VIEW -->
+    <div id="ride-map-view">
+      <div id="bimride-map" style="width:100%;height:420px;border-radius:0;position:relative;z-index:1"></div>
+      <!-- Selected runner popup -->
+      <div id="runner-popup" style="display:none;margin:10px 16px;background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="popup-avatar" style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#f97316,#ef4444);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex-shrink:0"></div>
+          <div style="flex:1">
+            <p id="popup-name" style="font-weight:900;font-size:16px"></p>
+            <p id="popup-route" style="font-size:12px;color:#64748b;margin-top:2px"></p>
+            <p id="popup-status" style="font-size:11px;font-weight:700;margin-top:4px"></p>
           </div>
-          <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px">
-            <div style="width:48px;height:48px;background:linear-gradient(135deg,#f97316,#ef4444);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0">J</div>
-            <div style="flex:1"><p style="font-weight:700">Jean-Paul R.</p><p style="font-size:12px;color:#64748b">Montauroux → Fayence · 8 min</p></div>
-            <div style="text-align:right"><p style="color:#fb923c;font-weight:700">8 min</p><p style="font-size:10px;color:#64748b">4.7 ⭐</p></div>
+          <div style="text-align:right">
+            <p id="popup-eta" style="font-size:20px;font-weight:900;color:#fb923c"></p>
+            <p id="popup-rating" style="font-size:11px;color:#fcd34d;margin-top:2px"></p>
           </div>
         </div>
+        <button onclick="requestRunner()" style="width:100%;padding:12px;background:#f97316;color:white;border:none;border-radius:12px;font-weight:900;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif;margin-top:12px;box-shadow:0 4px 16px rgba(249,115,22,0.3)">
+          🚗 Demander ce Runner
+        </button>
+      </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="ride-list-view" style="display:none;padding:0 16px 80px">
+      <div id="runners-list"></div>
+      <div style="margin-top:16px;background:#1e293b;border:1px solid #334155;border-radius:20px;padding:20px;text-align:center">
+        <p style="font-size:14px;font-weight:700;margin-bottom:8px">Vous souhaitez livrer ?</p>
+        <p style="font-size:12px;color:#64748b;margin-bottom:16px">Devenez BIM-Runner et gagnez de l'argent en livrant vos voisins</p>
+        <button onclick="becomeRunner()" style="padding:14px 28px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 6px 20px rgba(249,115,22,0.3)">
+          🏅 Devenir BIM-Runner
+        </button>
       </div>
     </div>
   </div>
@@ -1294,6 +1339,180 @@ function publish() { publishProOffer(); }
 function analyzePhoto() {}
 function showProTab() {}
 
+
+
+// ============================================
+// BIM-RIDE MAP
+// ============================================
+
+const RUNNERS = [
+  { id:1, name:'Marie T.', initial:'M', color:'#f97316', lat:43.6180, lng:6.6920, route:'Fayence → Callian', eta:'12 min', rating:'4.9', status:'En route', delivering: true },
+  { id:2, name:'Jean-Paul R.', initial:'J', color:'#6366f1', lat:43.6050, lng:6.7200, route:'Montauroux → Fayence', eta:'8 min', rating:'4.7', status:'Disponible', delivering: false },
+  { id:3, name:'Sophie M.', initial:'S', color:'#10b981', lat:43.6320, lng:6.7050, route:'Fayence → Seillans', eta:'15 min', rating:'5.0', status:'En route', delivering: true },
+  { id:4, name:'Karim B.', initial:'K', color:'#f59e0b', lat:43.5980, lng:6.6800, route:'Callian → Fayence', eta:'6 min', rating:'4.8', status:'Disponible', delivering: false },
+  { id:5, name:'Laura D.', initial:'L', color:'#ef4444', lat:43.6250, lng:6.6650, route:'Fayence → Montauroux', eta:'20 min', rating:'4.6', status:'En route', delivering: true },
+];
+
+let rideMap = null;
+let rideMarkers = [];
+let selectedRunner = null;
+let runnerAnimInterval = null;
+
+function initRideMap() {
+  if (typeof L === 'undefined') {
+    document.getElementById('bimride-map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;flex-direction:column;gap:12px"><div style="font-size:40px">🗺️</div><p style="font-weight:700">Carte disponible sur bim-app-nu.vercel.app</p><p style="font-size:12px">Leaflet ne charge pas en apercu local</p></div>';
+    return;
+  }
+  if (rideMap) {
+    rideMap.invalidateSize();
+    return;
+  }
+
+  rideMap = L.map('bimride-map', {
+    center: [43.612, 6.700],
+    zoom: 13,
+    zoomControl: true,
+    attributionControl: false
+  });
+
+  // Dark tile layer
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19
+  }).addTo(rideMap);
+
+  // Add runner markers
+  RUNNERS.forEach(function(runner) {
+    addRunnerMarker(runner);
+  });
+
+  // Animate runners movement
+  startRunnerAnimation();
+}
+
+function addRunnerMarker(runner) {
+  // Custom pulsing marker
+  const html = '<div style="position:relative;width:32px;height:32px">'
+    + '<div style="position:absolute;top:-4px;left:-4px;width:40px;height:40px;border-radius:50%;background:' + runner.color + ';opacity:0.3;animation:ripple 1.5s infinite ' + (runner.id * 0.3) + 's"></div>'
+    + '<div style="width:32px;height:32px;border-radius:50%;background:' + runner.color + ';border:3px solid white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:white;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4)">' + runner.initial + '</div>'
+    + '</div>';
+
+  const icon = L.divIcon({ html: html, className: '', iconSize: [32, 32], iconAnchor: [16, 16] });
+  const marker = L.marker([runner.lat, runner.lng], { icon: icon }).addTo(rideMap);
+
+  marker.on('click', function() {
+    selectRunner(runner);
+  });
+
+  rideMarkers.push({ runner: runner, marker: marker });
+}
+
+function selectRunner(runner) {
+  selectedRunner = runner;
+  const popup = document.getElementById('runner-popup');
+  popup.style.display = 'block';
+  document.getElementById('popup-avatar').textContent = runner.initial;
+  document.getElementById('popup-avatar').style.background = 'linear-gradient(135deg,' + runner.color + ',#0f172a)';
+  document.getElementById('popup-name').textContent = runner.name;
+  document.getElementById('popup-route').textContent = runner.route;
+  document.getElementById('popup-status').textContent = runner.delivering ? '🚗 En livraison' : '✅ Disponible';
+  document.getElementById('popup-status').style.color = runner.delivering ? '#fb923c' : '#34d399';
+  document.getElementById('popup-eta').textContent = runner.eta;
+  document.getElementById('popup-rating').textContent = '⭐ ' + runner.rating;
+  rideMap.panTo([runner.lat, runner.lng], { animate: true });
+}
+
+function startRunnerAnimation() {
+  if (runnerAnimInterval) clearInterval(runnerAnimInterval);
+  runnerAnimInterval = setInterval(function() {
+    rideMarkers.forEach(function(rm) {
+      // Simulate small movement
+      const dlat = (Math.random() - 0.5) * 0.001;
+      const dlng = (Math.random() - 0.5) * 0.001;
+      rm.runner.lat += dlat;
+      rm.runner.lng += dlng;
+      rm.marker.setLatLng([rm.runner.lat, rm.runner.lng]);
+    });
+  }, 2000);
+}
+
+function setRideView(view) {
+  const mapView = document.getElementById('ride-map-view');
+  const listView = document.getElementById('ride-list-view');
+  const btnMap = document.getElementById('ride-btn-map');
+  const btnList = document.getElementById('ride-btn-list');
+
+  if (view === 'map') {
+    mapView.style.display = 'block';
+    listView.style.display = 'none';
+    btnMap.style.background = '#f97316'; btnMap.style.color = 'white';
+    btnList.style.background = '#1e293b'; btnList.style.color = '#94a3b8';
+    setTimeout(function() { if (rideMap) rideMap.invalidateSize(); }, 100);
+  } else {
+    mapView.style.display = 'none';
+    listView.style.display = 'block';
+    btnList.style.background = '#f97316'; btnList.style.color = 'white';
+    btnMap.style.background = '#1e293b'; btnMap.style.color = '#94a3b8';
+    renderRunnersList();
+  }
+}
+
+function renderRunnersList() {
+  const el = document.getElementById('runners-list');
+  el.innerHTML = RUNNERS.map(function(r) {
+    return '<div onclick="selectRunnerFromList(' + r.id + ')" style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer">'
+      + '<div style="width:48px;height:48px;background:' + r.color + ';border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:white;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.3)">' + r.initial + '</div>'
+      + '<div style="flex:1">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+      + '<span style="font-weight:900;font-size:15px">' + r.name + '</span>'
+      + '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:' + (r.delivering ? 'rgba(249,115,22,0.2)' : 'rgba(16,185,129,0.2)') + ';color:' + (r.delivering ? '#fb923c' : '#34d399') + '">' + r.status + '</span>'
+      + '</div>'
+      + '<p style="font-size:12px;color:#64748b">' + r.route + '</p>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<p style="font-size:18px;font-weight:900;color:#fb923c">' + r.eta + '</p>'
+      + '<p style="font-size:11px;color:#fcd34d">⭐ ' + r.rating + '</p>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function selectRunnerFromList(id) {
+  const runner = RUNNERS.find(function(r) { return r.id === id; });
+  if (!runner) return;
+  setRideView('map');
+  setTimeout(function() {
+    initRideMap();
+    selectRunner(runner);
+  }, 200);
+}
+
+function requestRunner() {
+  if (!selectedRunner) return;
+  const btn = document.querySelector('#runner-popup button');
+  btn.textContent = '✅ Demande envoyee a ' + selectedRunner.name + '!';
+  btn.style.background = '#10b981';
+  showToast('🚗 ' + selectedRunner.name + ' a ete contacte!');
+  setTimeout(function() {
+    btn.textContent = 'Demander ce Runner';
+    btn.style.background = '#f97316';
+  }, 3000);
+}
+
+function becomeRunner() {
+  showToast('Inscription BIM-Runner - bientot disponible!');
+}
+
+// Init map when tab is shown
+const origShowTab = showTab;
+showTab = function(tab) {
+  origShowTab(tab);
+  if (tab === 'bimride') {
+    setTimeout(function() {
+      initRideMap();
+      renderRunnersList();
+    }, 100);
+  }
+};
 
 
 // ============================================
