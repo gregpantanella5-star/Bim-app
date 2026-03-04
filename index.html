@@ -298,21 +298,46 @@
         </div>
       </div>
 
-      <!-- ETAPE 2 : VOCAL -->
+      <!-- ETAPE 2 : VOCAL + SAISIE -->
       <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:24px;padding:16px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <span style="background:#f97316;color:white;font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">2</span>
-          <span style="font-size:13px;font-weight:700">Note vocale</span>
+          <span style="font-size:13px;font-weight:700">Vocal ou Saisie</span>
           <span id="voice-check" style="margin-left:auto;font-size:18px;display:none">✅</span>
         </div>
-        <div style="text-align:center">
-          <button id="pro-mic-btn" onclick="toggleProMic()" style="width:88px;height:88px;border-radius:50%;background:#f97316;border:none;cursor:pointer;font-size:36px;box-shadow:0 8px 24px rgba(249,115,22,0.4);transition:all 0.3s;font-family:Montserrat,sans-serif">🎤</button>
-          <p id="pro-mic-hint" style="margin-top:10px;font-size:13px;color:#64748b;font-weight:600">Decrivez votre produit, quantite, prix, remise</p>
-          <p id="pro-mic-status" style="font-size:11px;color:#f97316;margin-top:4px;font-weight:700;min-height:16px"></p>
+
+        <!-- MODE TOGGLE -->
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button onclick="showVoiceMode()" id="btn-mode-voice" style="flex:1;padding:10px;background:#f97316;color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">🎤 Vocal</button>
+          <button onclick="showManualMode()" id="btn-mode-manual" style="flex:1;padding:10px;background:#1e293b;color:#94a3b8;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">✏️ Manuel</button>
         </div>
-        <div id="pro-transcript-box" style="display:none;margin-top:12px;background:rgba(15,23,42,0.6);border-radius:12px;padding:12px">
-          <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">TRANSCRIPTION :</p>
-          <p id="pro-transcript-text" style="font-size:14px;color:#e2e8f0;font-style:italic;line-height:1.5"></p>
+
+        <!-- VOICE MODE -->
+        <div id="voice-mode-panel">
+          <div style="text-align:center">
+            <button id="pro-mic-btn" onclick="toggleProMic()" style="width:88px;height:88px;border-radius:50%;background:#f97316;border:none;cursor:pointer;font-size:36px;box-shadow:0 8px 24px rgba(249,115,22,0.4);transition:all 0.3s;font-family:Montserrat,sans-serif">🎤</button>
+            <p id="pro-mic-hint" style="margin-top:10px;font-size:13px;color:#64748b;font-weight:600">Appuyez et decrivez votre produit</p>
+            <p id="pro-mic-status" style="font-size:11px;color:#f97316;margin-top:4px;font-weight:700;min-height:16px"></p>
+          </div>
+          <div id="pro-transcript-box" style="display:none;margin-top:12px;background:rgba(15,23,42,0.6);border-radius:12px;padding:12px">
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">TRANSCRIPTION :</p>
+            <p id="pro-transcript-text" style="font-size:14px;color:#e2e8f0;font-style:italic;line-height:1.5"></p>
+          </div>
+          <p style="font-size:11px;color:#475569;text-align:center;margin-top:10px">⚠️ Fonctionne sur Chrome uniquement</p>
+        </div>
+
+        <!-- MANUAL MODE -->
+        <div id="manual-mode-panel" style="display:none">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <input id="manual-name" placeholder="Nom du produit (ex: Mangue Victoria)" oninput="syncManual()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <input id="manual-orig" type="number" step="0.01" placeholder="Prix base (€)" oninput="syncManual()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              <input id="manual-discount" type="number" placeholder="Remise (%)" oninput="syncManual()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            </div>
+            <input id="manual-qty" placeholder="Quantite (ex: 100 kg)" oninput="syncManual()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            <input id="manual-merchant-input" placeholder="Nom du commerce" oninput="syncManual()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            <button onclick="applyManual()" style="width:100%;padding:14px;background:#f97316;color:white;border:none;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;font-family:Montserrat,sans-serif">✅ Appliquer</button>
+          </div>
         </div>
       </div>
 
@@ -693,134 +718,128 @@ function toggleProMic() {
 
   if (proIsRecording) {
     if (proRecognition) proRecognition.stop();
-    else {
-      // Stop demo
-      proIsRecording = false;
-      btn.textContent = '🎤';
-      btn.style.background = '#f97316';
-    }
     return;
   }
 
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    proRecognition = new SR();
-    proRecognition.lang = 'fr-FR';
-    proRecognition.continuous = true;
-    proRecognition.interimResults = true;
-
-    proRecognition.onstart = function() {
-      proIsRecording = true;
-      btn.innerHTML = '⏹';
-      btn.style.background = '#ef4444';
-      btn.style.boxShadow = '0 0 0 8px rgba(239,68,68,0.3)';
-      hint.textContent = 'Parlez... Appuyez pour arreter';
-      status.textContent = 'Enregistrement en cours...';
-      box.style.display = 'block';
-      txt.textContent = '';
-    };
-
-    proRecognition.onresult = function(e) {
-      let transcript = '';
-      for (let i = 0; i < e.results.length; i++) {
-        transcript += e.results[i][0].transcript + ' ';
-      }
-      txt.textContent = transcript.trim();
-    };
-
-    proRecognition.onend = function() {
-      proIsRecording = false;
-      btn.textContent = '✅';
-      btn.style.background = '#10b981';
-      btn.style.boxShadow = '0 8px 24px rgba(16,185,129,0.4)';
-      hint.textContent = 'Note vocale enregistree!';
-      status.textContent = 'Analyse en cours...';
-      const transcript = txt.textContent;
-      setTimeout(function() {
-        if (transcript) {
-          parseProVoice(transcript);
-          status.textContent = '';
-          document.getElementById('voice-check').style.display = 'inline';
-          document.getElementById('pro-result-card').style.display = 'block';
-        }
-      }, 400);
-    };
-
-    proRecognition.onerror = function(e) {
-      proIsRecording = false;
-      btn.textContent = '🎤';
-      btn.style.background = '#f97316';
-      btn.style.boxShadow = '';
-      if (e.error === 'not-allowed') {
-        status.textContent = 'Autorisez le micro dans votre navigateur';
-        showToast('Autorisez le micro dans les parametres');
-      } else {
-        status.textContent = 'Erreur micro - Saisissez manuellement';
-      }
-    };
-
-    proRecognition.start();
-
-  } else {
-    // No speech API - show manual mode
-    status.textContent = 'Micro non disponible - Saisissez manuellement ci-dessous';
-    document.getElementById('pro-result-card').style.display = 'block';
-    btn.style.opacity = '0.5';
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    status.textContent = 'Micro non disponible - Utilisez le mode Manuel';
+    return;
   }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  proRecognition = new SR();
+  proRecognition.lang = 'fr-FR';
+  proRecognition.continuous = false;
+  proRecognition.interimResults = false;
+
+  proRecognition.onstart = function() {
+    proIsRecording = true;
+    btn.innerHTML = 'STOP';
+    btn.style.fontSize = '14px';
+    btn.style.background = '#ef4444';
+    btn.style.boxShadow = '0 0 0 8px rgba(239,68,68,0.3)';
+    hint.textContent = 'Parlez... appuyez STOP quand termine';
+    status.textContent = 'Enregistrement en cours...';
+    box.style.display = 'block';
+    txt.textContent = '...';
+  };
+
+  proRecognition.onresult = function(e) {
+    const result = e.results[e.results.length - 1];
+    if (result.isFinal) {
+      txt.textContent = result[0].transcript;
+    }
+  };
+
+  proRecognition.onend = function() {
+    proIsRecording = false;
+    btn.innerHTML = '🎤';
+    btn.style.fontSize = '36px';
+    btn.style.background = '#10b981';
+    btn.style.boxShadow = '0 8px 24px rgba(16,185,129,0.4)';
+    hint.textContent = 'Note vocale enregistree!';
+    status.textContent = 'Analyse en cours...';
+    const transcript = txt.textContent;
+    if (transcript && transcript !== '...') {
+      setTimeout(function() {
+        parseProVoice(transcript);
+        status.textContent = '';
+        document.getElementById('voice-check').style.display = 'inline';
+        document.getElementById('pro-result-card').style.display = 'block';
+      }, 300);
+    }
+  };
+
+  proRecognition.onerror = function(e) {
+    proIsRecording = false;
+    btn.innerHTML = '🎤';
+    btn.style.fontSize = '36px';
+    btn.style.background = '#f97316';
+    btn.style.boxShadow = '';
+    if (e.error === 'not-allowed') {
+      status.textContent = 'Autorisez le micro dans Chrome';
+    } else {
+      status.textContent = 'Erreur - utilisez le mode Manuel';
+    }
+  };
+
+  proRecognition.start();
 }
 
-function parseProVoice(text) {
-  const t = text.toLowerCase();
 
-  // Product name: words before first number or keyword
+function parseProVoice(text) {
+  const t = text.toLowerCase()
+    .replace(/euros?/g, 'EUR')
+    .replace(/pour cent|pourcent/g, '%')
+    .replace(/le kilo|le kg|par kg/g, '/kg')
+    .replace(/virgule/g, '.');
+
+  console.log('Parsing:', t);
+
+  // Product name: everything before first number or trigger word
   let name = text;
-  const stopIdx = t.search(/\d|kg\b|g\b|litre|piece|unites|boite|carton|a vendre|prix|euros?|pourcent|%|remise|promotion/);
-  if (stopIdx > 2) name = text.slice(0, stopIdx).trim().replace(/[,.\-]$/, '');
+  const stopIdx = t.search(/\d|prix|bon|etat|a vendre|quantite|kg|kilo/);
+  if (stopIdx > 2) {
+    name = text.slice(0, stopIdx).trim().replace(/[,.\-]$/, '').trim();
+  }
   name = name.charAt(0).toUpperCase() + name.slice(1);
 
-  // Price: number before euro(s)
+  // Price: find number followed by EUR or /kg or le kilo
   let price = '';
-  const priceMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|eur\b)/);
-  if (priceMatch) price = priceMatch[1].replace(',', '.');
+  const pricePatterns = [
+    /(\d+(?:[.,]\d+)?)\s*EUR/i,
+    /prix\s+(?:de\s+base\s+)?(\d+(?:[.,]\d+)?)/i,
+    /(\d+(?:[.,]\d+)?)\s*(?:euros?|EUR)/i,
+    /(\d+(?:[.,]\d+)?)\s*(?:\/kg|le\s+kg|le\s+kilo)/i,
+  ];
+  for (const pat of pricePatterns) {
+    const m = t.match(pat);
+    if (m) { price = m[1].replace(',', '.'); break; }
+  }
 
   // Discount
   let discount = '';
-  const discMatch = t.match(/(\d+)\s*(?:pourcent|pour cent|%)/);
+  const discMatch = t.match(/(\d+)\s*%/);
   if (discMatch) discount = discMatch[1];
 
   // Quantity
   let qty = '';
-  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g\b|litres?|pieces?|unites?|boites?|cartons?|ml|cl)/);
-  if (qtyMatch) qty = qtyMatch[1] + ' ' + qtyMatch[2];
+  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|litres?|pieces?|unites?|boites?|cartons?|ml|cl|kilo)/);
+  if (qtyMatch) qty = qtyMatch[1] + ' ' + qtyMatch[2].replace('kilo','kg');
 
   // Category
   const cat = detectCategory(text);
 
+  console.log('Parsed:', {name, price, discount, qty, cat});
+
   // Fill form
-  document.getElementById('result-name').value = name;
+  if (name) document.getElementById('result-name').value = name;
   if (price) document.getElementById('result-orig').value = price;
   if (discount) document.getElementById('result-discount').value = discount;
   if (qty) document.getElementById('result-qty').value = qty;
   document.getElementById('result-cat').value = cat;
   updateCatBadge(cat);
   recalcFlash();
-}
-
-function updateCatBadge(cat) {
-  const badge = document.getElementById('result-cat-badge');
-  if (badge) badge.textContent = (CAT_EMOJI[cat] || '') + ' ' + (CAT_LABELS[cat] || cat);
-}
-
-function setCat(btn, cat) {
-  document.getElementById('result-cat').value = cat;
-  updateCatBadge(cat);
-  document.querySelectorAll('.cat-pick-btn').forEach(function(b) {
-    b.style.opacity = '0.5';
-    b.style.transform = 'scale(1)';
-  });
-  btn.style.opacity = '1';
-  btn.style.transform = 'scale(1.08)';
-  btn.style.boxShadow = '0 4px 12px rgba(249,115,22,0.3)';
 }
 
 function recalcFlash() {
@@ -903,6 +922,51 @@ function resetProMode() {
   document.getElementById('pro-status-badge').textContent = 'Pret';
   const btn = document.getElementById('btn-pro-publish');
   if (btn) { btn.textContent = 'Publier dans le Feed'; btn.style.background = '#f97316'; }
+}
+
+function showVoiceMode() {
+  document.getElementById('voice-mode-panel').style.display = 'block';
+  document.getElementById('manual-mode-panel').style.display = 'none';
+  document.getElementById('btn-mode-voice').style.background = '#f97316';
+  document.getElementById('btn-mode-voice').style.color = 'white';
+  document.getElementById('btn-mode-manual').style.background = '#1e293b';
+  document.getElementById('btn-mode-manual').style.color = '#94a3b8';
+}
+
+function showManualMode() {
+  document.getElementById('voice-mode-panel').style.display = 'none';
+  document.getElementById('manual-mode-panel').style.display = 'block';
+  document.getElementById('btn-mode-manual').style.background = '#f97316';
+  document.getElementById('btn-mode-manual').style.color = 'white';
+  document.getElementById('btn-mode-voice').style.background = '#1e293b';
+  document.getElementById('btn-mode-voice').style.color = '#94a3b8';
+  document.getElementById('pro-result-card').style.display = 'block';
+}
+
+function syncManual() {
+  const name = document.getElementById('manual-name').value;
+  const orig = document.getElementById('manual-orig').value;
+  const disc = document.getElementById('manual-discount').value;
+  const qty = document.getElementById('manual-qty').value;
+  const merchant = document.getElementById('manual-merchant-input').value;
+  if (name) document.getElementById('result-name').value = name;
+  if (orig) document.getElementById('result-orig').value = orig;
+  if (disc) document.getElementById('result-discount').value = disc;
+  if (qty) document.getElementById('result-qty').value = qty;
+  if (merchant) document.getElementById('result-merchant').value = merchant;
+  // Auto detect category
+  if (name) {
+    const cat = detectCategory(name + ' ' + qty);
+    document.getElementById('result-cat').value = cat;
+    updateCatBadge(cat);
+  }
+  recalcFlash();
+}
+
+function applyManual() {
+  syncManual();
+  document.getElementById('voice-check').style.display = 'inline';
+  showToast('Informations appliquees!');
 }
 
 function renderProOffers() {
