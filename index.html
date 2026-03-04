@@ -27,7 +27,17 @@
     .tab span { font-size: 10px; font-weight: 700; color: #64748b; }
     .tab.active span { color: #f97316; }
 
-    /* DEAL CARD */
+    /* DEAL CARD NEW */
+    .deal-card-new {
+      margin: 0 16px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #1e293b;
+      border: 1px solid #334155;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    /* DEAL CARD (legacy) */
     .deal-card { margin: 0 16px; border-radius: 24px; overflow: hidden; position: relative; height: 62vh; min-height: 420px; }
     .deal-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .deal-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.1) 100%); }
@@ -494,40 +504,59 @@ function renderDeal() {
   }
   const d = deals[0];
   currentDeal = d;
+
+  const discountedPrice = d.price.toFixed(2);
+  const saving = (d.orig - d.price).toFixed(2);
+
   container.innerHTML = `
-    <div class="deal-card" ontouchstart="touchStart(event)" ontouchend="touchEnd(event)">
-      <img class="deal-bg" src="${d.bg}" alt="${d.name}" loading="lazy" />
-      <div class="deal-overlay"></div>
-      <div class="deal-top">
-        <div>
-          <span class="deal-badge" style="background:${d.badgeColor}">${d.badge}</span>
-          <span class="deal-origin">📍 ${d.origin}</span>
+    <div class="deal-card-new" ontouchstart="touchStart(event)" ontouchend="touchEnd(event)">
+
+      <!-- PHOTO NETTE en haut -->
+      <div style="width:100%;height:200px;overflow:hidden;border-radius:20px 20px 0 0;position:relative;background:#1e293b">
+        <img src="${d.bg}" alt="${d.name}"
+          style="width:100%;height:100%;object-fit:cover;display:block"
+          loading="lazy" />
+        <!-- Badge discount flottant -->
+        <div style="position:absolute;top:12px;right:12px;background:#f97316;color:white;font-size:22px;font-weight:900;padding:8px 14px;border-radius:14px;line-height:1;box-shadow:0 4px 12px rgba(249,115,22,0.5)">
+          -${d.discount}%
         </div>
-        <div style="text-align:right">
-          <div class="deal-discount">-${d.discount}%</div>
-          <div class="deal-timer">⏱ ${d.timer}</div>
+        <!-- Badge type -->
+        <div style="position:absolute;top:12px;left:12px;background:${d.badgeColor};color:white;font-size:10px;font-weight:900;padding:5px 10px;border-radius:8px;letter-spacing:1px">
+          ${d.badge}
         </div>
       </div>
-      <div class="deal-bottom">
-        ${d.ai ? `<div class="deal-ai">🤖 Analyse IA : ${d.ai}</div>` : ''}
-        <div class="deal-merchant">
-          <img class="deal-photo" src="${d.photo}" alt="${d.name}" loading="lazy" />
-          <div>
-            <div class="deal-merchant-name">✓ ${d.merchant}</div>
-            <div class="deal-name">${d.name}</div>
+
+      <!-- INFOS NETTES en dessous sur fond sombre -->
+      <div style="background:#1e293b;border-radius:0 0 20px 20px;padding:14px 16px 16px">
+
+        <!-- Ligne merchant + timer -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:28px;height:28px;border-radius:8px;overflow:hidden;flex-shrink:0">
+              <img src="${d.photo}" style="width:100%;height:100%;object-fit:cover" />
+            </div>
+            <span style="font-size:12px;font-weight:700;color:#94a3b8">${d.merchant}</span>
+            <span style="font-size:11px;color:#34d399;font-weight:700">📍${d.origin}</span>
           </div>
+          <span style="font-size:11px;font-weight:700;color:#fcd34d;background:rgba(0,0,0,0.3);padding:3px 8px;border-radius:6px">⏱ ${d.timer}</span>
         </div>
-        <p class="deal-desc">${d.desc} · ${d.weight}</p>
-        <div class="deal-prices">
+
+        <!-- Nom produit -->
+        <h2 style="font-size:19px;font-weight:900;color:white;margin-bottom:4px;line-height:1.2">${d.name}</h2>
+        <p style="font-size:12px;color:#64748b;margin-bottom:10px">${d.desc || ''} ${d.weight ? '· ' + d.weight : ''}</p>
+
+        ${d.ai ? `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:#6ee7b7;font-weight:600">🤖 ${d.ai}</div>` : ''}
+
+        <!-- PRIX bien lisible -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
           <div>
-            <div class="deal-original">${d.orig}€</div>
-            <div class="deal-price">${d.price}€</div>
-            <div class="deal-eco">Economie : ${(d.orig - d.price).toFixed(2)}€</div>
+            <span style="font-size:13px;color:#475569;text-decoration:line-through;display:block">${d.orig}€</span>
+            <span style="font-size:36px;font-weight:900;color:#34d399;line-height:1">${discountedPrice}€</span>
+            <span style="font-size:11px;color:#6ee7b7;font-weight:700;display:block">Economie ${saving}€ · 🌿 -${d.co2}kg CO₂</span>
           </div>
-          <div style="text-align:right">
-            <div class="deal-co2">🌿 -${d.co2}kg CO₂<br>${d.expiry}</div>
-            <button class="btn-cart" onclick="addToCart(${d.id})">🛒 Panier</button>
-          </div>
+          <button onclick="addToCart(${d.id})" style="background:#f97316;color:white;border:none;border-radius:14px;padding:14px 20px;font-weight:900;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 4px 16px rgba(249,115,22,0.4)">
+            🛒 Panier
+          </button>
         </div>
       </div>
     </div>`;
