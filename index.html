@@ -183,18 +183,34 @@
         <h2 style="font-size:22px;font-weight:900;margin-bottom:4px">Espace Commerçant</h2>
         <p style="font-size:13px;color:#64748b">Connectez-vous pour publier vos offres</p>
       </div>
-      <div id="login-form" style="display:flex;flex-direction:column;gap:12px">
+      <!-- PANEL: Choisir inscription ou connexion -->
+      <div id="login-choice" style="display:flex;flex-direction:column;gap:10px">
+        <button onclick="showPanel('register')" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">
+          🏪 Créer mon compte commerçant
+        </button>
+        <button onclick="showPanel('signin')" style="width:100%;padding:16px;background:#1e293b;color:white;border:1px solid #334155;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+          🔑 Me connecter
+        </button>
+        <button onclick="closeMerchantOverlay()" style="width:100%;padding:12px;background:none;color:#64748b;border:none;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">
+          Retour à l'app client
+        </button>
+      </div>
+
+      <!-- PANEL: Inscription -->
+      <div id="register-form" style="display:none;flex-direction:column;gap:12px">
+        <button onclick="showPanel('choice')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;text-align:left;padding:0;font-family:Montserrat,sans-serif">← Retour</button>
+        <p style="font-size:13px;font-weight:700;color:#94a3b8;text-align:center;margin-bottom:4px">Nouvelle inscription</p>
         <div>
           <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM DU COMMERCE</label>
-          <input id="login-name" placeholder="ex: Boucherie Martin" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+          <input id="reg-name" placeholder="ex: Boucherie Martin" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
         </div>
         <div>
           <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NUMÉRO SIRET (14 chiffres)</label>
-          <input id="login-siret" placeholder="ex: 12345678901234" maxlength="14" type="number" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+          <input id="reg-siret" placeholder="ex: 12345678901234" maxlength="14" type="tel" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
         </div>
         <div>
           <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CATÉGORIE PRINCIPALE</label>
-          <select id="login-cat" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px">
+          <select id="reg-cat" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px">
             <option value="viande">🥩 Boucherie / Charcuterie</option>
             <option value="cave">🍷 Cave / Spiritueux</option>
             <option value="primeur">🥦 Primeur / Fruits & Légumes</option>
@@ -202,14 +218,48 @@
             <option value="pret">🍱 Traiteur / Prêt à manger</option>
           </select>
         </div>
-        <p id="login-error" style="color:#ef4444;font-size:12px;text-align:center;display:none">SIRET invalide (14 chiffres requis)</p>
-        <button onclick="doMerchantLogin()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3);margin-top:4px">
-          ⚡ Accéder à mon espace
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CRÉER UN CODE PIN (4 chiffres)</label>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <input class="pin-input" id="reg-pin-1" maxlength="1" type="tel" oninput="pinNext(this,'reg-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="reg-pin-2" maxlength="1" type="tel" oninput="pinNext(this,'reg-pin-3')" onkeydown="pinBack(event,this,'reg-pin-1')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="reg-pin-3" maxlength="1" type="tel" oninput="pinNext(this,'reg-pin-4')" onkeydown="pinBack(event,this,'reg-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="reg-pin-4" maxlength="1" type="tel" onkeydown="pinBack(event,this,'reg-pin-3')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+          </div>
+        </div>
+        <p id="reg-error" style="color:#ef4444;font-size:12px;text-align:center;display:none"></p>
+        <button onclick="doRegister()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">
+          ✅ Créer mon compte
+        </button>
+      </div>
+
+      <!-- PANEL: Connexion -->
+      <div id="signin-form" style="display:none;flex-direction:column;gap:12px">
+        <button onclick="showPanel('choice')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;text-align:left;padding:0;font-family:Montserrat,sans-serif">← Retour</button>
+        <p style="font-size:13px;font-weight:700;color:#94a3b8;text-align:center;margin-bottom:4px">Connexion</p>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NUMÉRO SIRET</label>
+          <input id="si-siret" placeholder="14 chiffres" maxlength="14" type="tel" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CODE PIN</label>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <input class="pin-input" id="si-pin-1" maxlength="1" type="tel" oninput="pinNext(this,'si-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="si-pin-2" maxlength="1" type="tel" oninput="pinNext(this,'si-pin-3')" onkeydown="pinBack(event,this,'si-pin-1')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="si-pin-3" maxlength="1" type="tel" oninput="pinNext(this,'si-pin-4')" onkeydown="pinBack(event,this,'si-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="si-pin-4" maxlength="1" type="tel" onkeydown="pinBack(event,this,'si-pin-3')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+          </div>
+        </div>
+        <p id="si-error" style="color:#ef4444;font-size:12px;text-align:center;display:none"></p>
+        <button onclick="doSignIn()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">
+          🔑 Se connecter
         </button>
         <button onclick="closeMerchantOverlay()" style="width:100%;padding:12px;background:none;color:#64748b;border:none;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">
           Retour à l'app client
         </button>
       </div>
+
+      <p id="login-error" style="display:none"></p>
     </div>
   </div>
 
@@ -1256,36 +1306,114 @@ let dashIsRecording = false;
 let dashRecognition = null;
 let dashSelectedCat = 'pret';
 
+// PIN HELPERS
+function pinNext(el, nextId) {
+  if (el.value.length === 1 && nextId) {
+    const next = document.getElementById(nextId);
+    if (next) next.focus();
+  }
+}
+function pinBack(e, el, prevId) {
+  if (e.key === 'Backspace' && el.value === '' && prevId) {
+    const prev = document.getElementById(prevId);
+    if (prev) { prev.value = ''; prev.focus(); }
+  }
+}
+function getPin(prefix) {
+  return ['1','2','3','4'].map(function(n) {
+    const el = document.getElementById(prefix + n);
+    return el ? el.value : '';
+  }).join('');
+}
+
+function showPanel(name) {
+  ['login-choice','register-form','signin-form'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const target = name === 'choice' ? 'login-choice' : name + '-form';
+  const el = document.getElementById(target);
+  if (el) el.style.display = 'flex';
+}
+
 function openMerchantSpace() {
-  // Check if already logged in via localStorage
   const saved = localStorage.getItem('bim_merchant');
   if (saved) {
-    currentMerchant = JSON.parse(saved);
-    showMerchantDashboard();
-  } else {
-    document.getElementById('merchant-overlay').style.display = 'flex';
+    try {
+      currentMerchant = JSON.parse(saved);
+      showMerchantDashboard();
+      return;
+    } catch(e) {}
   }
+  document.getElementById('merchant-overlay').style.display = 'flex';
+  showPanel('choice');
 }
 
 function closeMerchantOverlay() {
   document.getElementById('merchant-overlay').style.display = 'none';
 }
 
-function doMerchantLogin() {
-  const name = document.getElementById('login-name').value.trim();
-  const siret = document.getElementById('login-siret').value.trim();
-  const cat = document.getElementById('login-cat').value;
-  const errEl = document.getElementById('login-error');
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const siret = document.getElementById('reg-siret').value.trim();
+  const cat = document.getElementById('reg-cat').value;
+  const pin = getPin('reg-pin-');
+  const errEl = document.getElementById('reg-error');
 
   if (!name) { errEl.textContent = 'Entrez le nom de votre commerce'; errEl.style.display = 'block'; return; }
-  if (siret.length !== 14 || isNaN(siret)) { errEl.textContent = 'SIRET invalide (14 chiffres requis)'; errEl.style.display = 'block'; return; }
+  if (siret.length !== 14) { errEl.textContent = 'SIRET invalide (14 chiffres requis)'; errEl.style.display = 'block'; return; }
+  if (pin.length !== 4) { errEl.textContent = 'Entrez un code PIN de 4 chiffres'; errEl.style.display = 'block'; return; }
+
+  // Check if SIRET already registered
+  const existing = localStorage.getItem('bim_account_' + siret);
+  if (existing) { errEl.textContent = 'Ce SIRET est deja enregistre - utilisez Connexion'; errEl.style.display = 'block'; return; }
 
   errEl.style.display = 'none';
-  currentMerchant = { name, siret, cat, joinDate: new Date().toLocaleDateString('fr-FR') };
-  localStorage.setItem('bim_merchant', JSON.stringify(currentMerchant));
+
+  // Save account
+  const account = { name, siret, cat, pin, joinDate: new Date().toLocaleDateString('fr-FR') };
+  localStorage.setItem('bim_account_' + siret, JSON.stringify(account));
+
+  // Auto login
+  currentMerchant = account;
+  localStorage.setItem('bim_merchant', JSON.stringify(account));
   document.getElementById('merchant-overlay').style.display = 'none';
+  showToast('Compte cree! Bienvenue ' + name);
   showMerchantDashboard();
 }
+
+function doSignIn() {
+  const siret = document.getElementById('si-siret').value.trim();
+  const pin = getPin('si-pin-');
+  const errEl = document.getElementById('si-error');
+
+  if (siret.length !== 14) { errEl.textContent = 'SIRET invalide'; errEl.style.display = 'block'; return; }
+  if (pin.length !== 4) { errEl.textContent = 'Entrez votre code PIN'; errEl.style.display = 'block'; return; }
+
+  const saved = localStorage.getItem('bim_account_' + siret);
+  if (!saved) { errEl.textContent = 'Compte introuvable - inscrivez-vous'; errEl.style.display = 'block'; return; }
+
+  const account = JSON.parse(saved);
+  if (account.pin !== pin) {
+    errEl.textContent = 'Code PIN incorrect';
+    errEl.style.display = 'block';
+    // Flash PIN inputs red
+    ['si-pin-1','si-pin-2','si-pin-3','si-pin-4'].forEach(function(id) {
+      const el = document.getElementById(id);
+      if (el) { el.style.borderColor = '#ef4444'; setTimeout(function() { el.style.borderColor = '#334155'; el.value = ''; }, 1000); }
+    });
+    return;
+  }
+
+  errEl.style.display = 'none';
+  currentMerchant = account;
+  localStorage.setItem('bim_merchant', JSON.stringify(account));
+  document.getElementById('merchant-overlay').style.display = 'none';
+  showToast('Bienvenue ' + account.name + '!');
+  showMerchantDashboard();
+}
+
+function doMerchantLogin() { doSignIn(); }
 
 function showMerchantDashboard() {
   document.getElementById('merchant-dashboard').style.display = 'block';
