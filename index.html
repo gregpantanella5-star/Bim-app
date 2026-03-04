@@ -142,6 +142,7 @@
     .parsed-val { font-size: 14px; font-weight: 700; }
     .btn-publish { width: 100%; padding: 18px; background: #f97316; color: white; border: none; border-radius: 16px; font-size: 18px; font-weight: 900; cursor: pointer; margin-top: 8px; font-family: 'Montserrat', sans-serif; box-shadow: 0 8px 24px rgba(249,115,22,0.3); }
     .btn-publish.done { background: #10b981; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* B2B VIEW */
     .b2b-view { padding: 16px; }
@@ -261,162 +262,112 @@
   </div>
 
   <div id="view-merchant" style="display:none">
-    <div class="merchant-view">
+    <div style="padding:16px;padding-bottom:80px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <h2 style="font-size:20px;font-weight:900">Mode Commerçant</h2>
-        <span style="font-size:11px;background:rgba(16,185,129,0.2);color:#34d399;padding:4px 12px;border-radius:999px;font-weight:700">PRO ✓</span>
+        <h2 style="font-size:20px;font-weight:900">Mode Pro</h2>
+        <span id="pro-status-badge" style="font-size:11px;background:rgba(16,185,129,0.2);color:#34d399;padding:4px 12px;border-radius:999px;font-weight:700">Pret</span>
       </div>
 
-      <!-- TABS INTERNES -->
-      <div style="display:flex;gap:8px;margin-bottom:16px">
-        <button onclick="showProTab('voice')" id="ptab-voice" style="flex:1;padding:10px;border-radius:12px;border:none;background:#f97316;color:white;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">🎤 Vocal</button>
-        <button onclick="showProTab('camera')" id="ptab-camera" style="flex:1;padding:10px;border-radius:12px;border:none;background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">📸 Caméra</button>
-        <button onclick="showProTab('manual')" id="ptab-manual" style="flex:1;padding:10px;border-radius:12px;border:none;background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">✏️ Manuel</button>
-        <button onclick="showProTab('mydeals')" id="ptab-mydeals" style="flex:1;padding:10px;border-radius:12px;border:none;background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;font-family:Montserrat,sans-serif;cursor:pointer">📦 Mes offres</button>
-      </div>
-
-      <!-- VOCAL -->
-      <div id="protab-voice">
-        <div class="section-card">
-          <p class="section-title">🎙 Dicter votre offre à voix haute</p>
-          <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎤</button>
-          <p class="mic-hint" id="mic-hint">Appuyez pour parler</p>
-          <div id="mic-status" style="text-align:center;font-size:12px;color:#64748b;margin-top:8px"></div>
-          <div class="transcript-box" id="transcript-box" style="display:none">
-            <p class="transcript-label">🎤 Transcription :</p>
-            <p class="transcript-text" id="transcript-text"></p>
+      <!-- ETAPE 1 : PHOTO -->
+      <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:24px;overflow:hidden;margin-bottom:12px">
+        <div style="padding:14px 16px 8px;display:flex;align-items:center;gap:8px">
+          <span style="background:#f97316;color:white;font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">1</span>
+          <span style="font-size:13px;font-weight:700">Photo du produit</span>
+          <span id="photo-check" style="margin-left:auto;font-size:18px;display:none">✅</span>
+        </div>
+        <div id="photo-zone" style="width:100%;aspect-ratio:4/3;background:#0f172a;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="document.getElementById('pro-cam-input').click()">
+          <div id="photo-placeholder" style="text-align:center;color:#475569">
+            <div style="font-size:48px;margin-bottom:8px">📷</div>
+            <p style="font-size:14px;font-weight:700">Appuyez pour photographier</p>
+            <p style="font-size:12px;margin-top:4px">La photo sera analysee par IA</p>
           </div>
-          <div id="parsed-result" style="display:none">
-            <p style="font-size:12px;color:#34d399;font-weight:700;margin:12px 0 8px">🤖 Remplissage automatique :</p>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div>
-                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Nom du produit</label>
-                <input id="v-name" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <div>
-                  <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Prix (€)</label>
-                  <input id="v-price" type="number" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-                </div>
-                <div>
-                  <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Remise (%)</label>
-                  <input id="v-discount" type="number" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-                </div>
-              </div>
-              <div>
-                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px">Quantité / Poids</label>
-                <input id="v-qty" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-              </div>
-            </div>
-            <button class="btn-publish" id="btn-publish-voice" onclick="publishOffer('voice')" style="margin-top:12px">⚡ Publier l'offre flash</button>
+          <img id="pro-photo-img" style="display:none;width:100%;height:100%;object-fit:cover" />
+          <div id="ai-scan-overlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+            <div style="width:48px;height:48px;border:3px solid #f97316;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+            <p style="color:white;font-size:14px;font-weight:700">Analyse IA...</p>
           </div>
+        </div>
+        <input type="file" id="pro-cam-input" accept="image/*" capture="environment" style="display:none" onchange="handleProPhoto(event)" />
+        <div style="padding:10px 16px;display:flex;gap:8px">
+          <button onclick="document.getElementById('pro-cam-input').click()" style="flex:1;padding:10px;background:#f97316;color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">📷 Camera</button>
+          <button onclick="document.getElementById('pro-cam-input').removeAttribute('capture');document.getElementById('pro-cam-input').click()" style="flex:1;padding:10px;background:#1e293b;color:#94a3b8;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">🖼 Galerie</button>
+        </div>
+        <div id="ai-result-box" style="display:none;margin:0 16px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px">
+          <p style="font-size:11px;font-weight:700;color:#34d399;margin-bottom:4px">🤖 Analyse IA</p>
+          <p id="ai-result-text" style="font-size:13px;color:#6ee7b7"></p>
         </div>
       </div>
 
-      <!-- CAMERA -->
-      <div id="protab-camera" style="display:none">
-        <div class="section-card">
-          <p class="section-title">📸 Photo du produit</p>
-          <div id="camera-preview" style="width:100%;aspect-ratio:4/3;background:#0f172a;border-radius:16px;overflow:hidden;position:relative;margin-bottom:12px;display:flex;align-items:center;justify-content:center">
-            <span id="camera-placeholder" style="color:#475569;font-size:14px;text-align:center">Aucune photo<br>Appuyez pour prendre une photo</span>
-            <img id="camera-img" style="display:none;width:100%;height:100%;object-fit:cover" />
-            <canvas id="camera-canvas" style="display:none"></canvas>
-          </div>
-          <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)" />
-          <div style="display:flex;gap:8px;margin-bottom:12px">
-            <button onclick="document.getElementById('camera-input').click()" style="flex:1;padding:14px;background:#f97316;color:white;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">📷 Prendre une photo</button>
-            <button onclick="document.getElementById('camera-input').removeAttribute('capture');document.getElementById('camera-input').click()" style="flex:1;padding:14px;background:#1e293b;color:#94a3b8;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">🖼 Galerie</button>
-          </div>
-          <div id="ai-analysis-result" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px;margin-bottom:12px">
-            <p style="font-size:12px;font-weight:700;color:#34d399;margin-bottom:4px">🤖 Analyse IA</p>
-            <p id="ai-analysis-text" style="font-size:13px;color:#6ee7b7"></p>
-          </div>
-          <div id="camera-form" style="display:none">
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <input id="c-name" placeholder="Nom du produit" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <input id="c-price" type="number" placeholder="Prix (€)" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-                <input id="c-discount" type="number" placeholder="Remise (%)" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-              </div>
-              <input id="c-qty" placeholder="Quantité / Poids" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-              <input id="c-merchant" placeholder="Nom de votre commerce" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-            </div>
-            <button class="btn-publish" onclick="publishOffer('camera')" style="margin-top:12px">⚡ Publier l'offre flash</button>
-          </div>
+      <!-- ETAPE 2 : VOCAL -->
+      <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:24px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span style="background:#f97316;color:white;font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">2</span>
+          <span style="font-size:13px;font-weight:700">Note vocale</span>
+          <span id="voice-check" style="margin-left:auto;font-size:18px;display:none">✅</span>
+        </div>
+        <div style="text-align:center">
+          <button id="pro-mic-btn" onclick="toggleProMic()" style="width:88px;height:88px;border-radius:50%;background:#f97316;border:none;cursor:pointer;font-size:36px;box-shadow:0 8px 24px rgba(249,115,22,0.4);transition:all 0.3s;font-family:Montserrat,sans-serif">🎤</button>
+          <p id="pro-mic-hint" style="margin-top:10px;font-size:13px;color:#64748b;font-weight:600">Decrivez votre produit, quantite, prix, remise</p>
+          <p id="pro-mic-status" style="font-size:11px;color:#f97316;margin-top:4px;font-weight:700;min-height:16px"></p>
+        </div>
+        <div id="pro-transcript-box" style="display:none;margin-top:12px;background:rgba(15,23,42,0.6);border-radius:12px;padding:12px">
+          <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">TRANSCRIPTION :</p>
+          <p id="pro-transcript-text" style="font-size:14px;color:#e2e8f0;font-style:italic;line-height:1.5"></p>
         </div>
       </div>
 
-      <!-- MANUEL -->
-      <div id="protab-manual" style="display:none">
-        <div class="section-card">
-          <p class="section-title">✏️ Saisie manuelle</p>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM DU PRODUIT *</label>
-              <input id="m-name" placeholder="ex: Côte de bœuf Angus" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-            </div>
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">COMMERCE *</label>
-              <input id="m-merchant" placeholder="ex: Boucherie Martin" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div>
-                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">PRIX ORIGINAL (€) *</label>
-                <input id="m-orig" type="number" step="0.01" placeholder="0.00" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-              </div>
-              <div>
-                <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">REMISE (%) *</label>
-                <input id="m-discount" type="number" placeholder="0" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" oninput="calcPrice()" />
-              </div>
-            </div>
-            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center">
-              <span style="color:#6ee7b7;font-size:13px;font-weight:700">💰 Prix flash :</span>
-              <span id="m-flash-price" style="font-size:24px;font-weight:900;color:#34d399">—</span>
-            </div>
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">QUANTITÉ / POIDS</label>
-              <input id="m-qty" placeholder="ex: 1.2 kg, 3 pièces..." style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
-            </div>
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CATÉGORIE</label>
-              <select id="m-cat" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px">
-                <option value="viande">🥩 Viande</option>
-                <option value="cave">🍷 Cave</option>
-                <option value="primeur">🥦 Primeur</option>
-                <option value="laitier">🧀 Laitier</option>
-                <option value="pret">🍱 Prêt à manger</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">DESCRIPTION</label>
-              <textarea id="m-desc" placeholder="Décrivez votre produit..." rows="3" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px;resize:none"></textarea>
-            </div>
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">PHOTO (optionnel)</label>
-              <input type="file" id="m-photo-input" accept="image/*" style="display:none" onchange="handleManualPhoto(event)" />
-              <button onclick="document.getElementById('m-photo-input').click()" style="width:100%;border:2px dashed #334155;background:none;border-radius:12px;padding:16px;color:#64748b;cursor:pointer;font-size:13px;font-family:Montserrat,sans-serif" id="m-photo-btn">📷 Ajouter une photo</button>
-            </div>
-            <div>
-              <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">VALIDITÉ</label>
-              <div style="display:flex;gap:8px">
-                <button onclick="setExpiry(this,'Aujourd'hui')" style="flex:1;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" class="expiry-btn">Aujourd'hui</button>
-                <button onclick="setExpiry(this,'Demain')" style="flex:1;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" class="expiry-btn">Demain</button>
-                <button onclick="setExpiry(this,'3 jours')" style="flex:1;padding:10px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif" class="expiry-btn">3 jours</button>
-              </div>
-            </div>
-          </div>
-          <button class="btn-publish" onclick="publishOffer('manual')" style="margin-top:16px">⚡ Publier l'offre flash</button>
+      <!-- ETAPE 3 : RESULTAT AUTO-REMPLI -->
+      <div id="pro-result-card" style="display:none;background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:24px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span style="background:#10b981;color:white;font-size:11px;font-weight:900;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">3</span>
+          <span style="font-size:13px;font-weight:700">Offre generee automatiquement</span>
+          <span style="margin-left:auto;font-size:11px;color:#34d399;font-weight:700">Modifiable</span>
         </div>
+        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center">
+          <img id="result-photo" style="width:72px;height:72px;border-radius:12px;object-fit:cover;display:none" />
+          <div style="flex:1">
+            <input id="result-name" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:15px;font-weight:700;margin-bottom:6px" placeholder="Nom du produit" />
+            <input id="result-merchant" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:8px 10px;color:#94a3b8;font-family:Montserrat,sans-serif;font-size:13px" placeholder="Nom du commerce" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">PRIX BASE (€)</p>
+            <input id="result-orig" type="number" step="0.01" oninput="recalcFlash()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" placeholder="0" />
+          </div>
+          <div>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">REMISE (%)</p>
+            <input id="result-discount" type="number" oninput="recalcFlash()" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" placeholder="0" />
+          </div>
+          <div>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">QUANTITE</p>
+            <input id="result-qty" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" placeholder="ex: 100kg" />
+          </div>
+        </div>
+        <div style="background:linear-gradient(to right,rgba(6,78,59,0.5),rgba(19,78,74,0.3));border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <p style="font-size:11px;color:#6ee7b7;font-weight:700">Prix flash</p>
+            <p id="result-flash-price" style="font-size:32px;font-weight:900;color:#34d399;line-height:1">—</p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:11px;color:#6ee7b7;font-weight:700">Economie client</p>
+            <p id="result-saving" style="font-size:20px;font-weight:900;color:#fb923c">—</p>
+          </div>
+        </div>
+        <button onclick="publishProOffer()" id="btn-pro-publish" style="width:100%;padding:18px;background:#f97316;color:white;border:none;border-radius:16px;font-size:18px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">⚡ Publier dans le Feed</button>
       </div>
 
       <!-- MES OFFRES -->
-      <div id="protab-mydeals" style="display:none">
-        <div id="mydeals-list"></div>
+      <div id="pro-my-offers-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <p style="font-size:14px;font-weight:700">Mes offres publiees</p>
+          <button onclick="document.getElementById('pro-my-offers-section').style.display='none'" style="background:none;border:none;color:#64748b;font-size:12px;cursor:pointer;font-family:Montserrat,sans-serif">Masquer</button>
+        </div>
+        <div id="pro-offers-list"></div>
       </div>
 
     </div>
   </div>
-
 
   <div id="view-b2b" style="display:none">
     <div class="b2b-view">
@@ -661,280 +612,298 @@ function bid(priceId, bidsId) {
   showToast('💰 Mise enregistree !');
 }
 
-// PRO TABS
-function showProTab(tab) {
-  ['voice','camera','manual','mydeals'].forEach(t => {
-    document.getElementById('protab-'+t).style.display = 'none';
-    const btn = document.getElementById('ptab-'+t);
-    if (btn) { btn.style.background = '#1e293b'; btn.style.color = '#94a3b8'; }
-  });
-  document.getElementById('protab-'+tab).style.display = 'block';
-  const activeBtn = document.getElementById('ptab-'+tab);
-  if (activeBtn) { activeBtn.style.background = '#f97316'; activeBtn.style.color = 'white'; }
+// PRO MODE - Photo + Voice unified
+let proPhotoData = null;
+let proIsRecording = false;
+let proRecognition = null;
+let proOffers = [];
+
+function handleProPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    proPhotoData = e.target.result;
+    const img = document.getElementById('pro-photo-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+    document.getElementById('photo-check').style.display = 'inline';
+    // Show AI scan overlay
+    const overlay = document.getElementById('ai-scan-overlay');
+    overlay.style.display = 'flex';
+    // Simulate AI analysis
+    setTimeout(function() {
+      overlay.style.display = 'none';
+      const resultBox = document.getElementById('ai-result-box');
+      resultBox.style.display = 'block';
+      document.getElementById('ai-result-text').textContent = 'Produit identifie - Aspect visuel optimal - Fraicheur A+ - Pret a vendre';
+      document.getElementById('pro-status-badge').textContent = 'Photo OK';
+      document.getElementById('pro-status-badge').style.background = 'rgba(16,185,129,0.2)';
+      document.getElementById('pro-status-badge').style.color = '#34d399';
+      // Show photo in result card
+      const rPhoto = document.getElementById('result-photo');
+      rPhoto.src = e.target.result;
+      rPhoto.style.display = 'block';
+      checkProReady();
+    }, 1800);
+  };
+  reader.readAsDataURL(file);
 }
 
-// VOICE RECOGNITION
-let isRecording = false;
-let recognition = null;
-
-function toggleMic() {
-  const btn = document.getElementById('mic-btn');
-  const hint = document.getElementById('mic-hint');
-  const status = document.getElementById('mic-status');
-  const box = document.getElementById('transcript-box');
-  const txt = document.getElementById('transcript-text');
-  const parsed = document.getElementById('parsed-result');
+function toggleProMic() {
+  const btn = document.getElementById('pro-mic-btn');
+  const hint = document.getElementById('pro-mic-hint');
+  const status = document.getElementById('pro-mic-status');
+  const box = document.getElementById('pro-transcript-box');
+  const txt = document.getElementById('pro-transcript-text');
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    // REAL speech recognition
-    if (isRecording) {
-      if (recognition) recognition.stop();
+    if (proIsRecording) {
+      if (proRecognition) proRecognition.stop();
       return;
     }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SR();
-    recognition.lang = 'fr-FR';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.onstart = () => {
-      isRecording = true;
-      btn.classList.add('recording');
-      btn.textContent = '🛑';
+    proRecognition = new SR();
+    proRecognition.lang = 'fr-FR';
+    proRecognition.continuous = true;
+    proRecognition.interimResults = true;
+    proRecognition.onstart = function() {
+      proIsRecording = true;
+      btn.textContent = 'X';
+      btn.style.background = '#ef4444';
+      btn.style.boxShadow = '0 0 0 8px rgba(239,68,68,0.3)';
       hint.textContent = 'Parlez maintenant...';
+      status.textContent = 'Enregistrement en cours...';
       box.style.display = 'block';
-      status.textContent = '🔴 Enregistrement en cours...';
+      txt.textContent = '';
     };
-    recognition.onresult = (e) => {
+    proRecognition.onresult = function(e) {
       let transcript = '';
       for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
       txt.textContent = transcript;
     };
-    recognition.onend = () => {
-      isRecording = false;
-      btn.classList.remove('recording');
+    proRecognition.onend = function() {
+      proIsRecording = false;
       btn.textContent = '🎤';
-      hint.textContent = 'Appuyez pour parler';
-      status.textContent = '✅ Termine — Remplissage automatique...';
+      btn.style.background = '#10b981';
+      btn.style.boxShadow = '0 8px 24px rgba(16,185,129,0.4)';
+      hint.textContent = 'Note vocale enregistree!';
+      status.textContent = 'Analyse en cours...';
       const transcript = txt.textContent;
-      if (transcript) {
-        setTimeout(() => { parseVoice(transcript); parsed.style.display = 'block'; status.textContent = ''; }, 500);
-      }
-    };
-    recognition.onerror = (e) => {
-      isRecording = false;
-      btn.classList.remove('recording');
-      btn.textContent = '🎤';
-      status.textContent = '⚠️ Micro non autorise — Autorisez le micro dans votre navigateur';
-      hint.textContent = 'Appuyez pour parler';
-    };
-    recognition.start();
-  } else {
-    // Demo fallback
-    if (isRecording) {
-      isRecording = false;
-      clearInterval(window._recInterval);
-      btn.classList.remove('recording');
-      btn.textContent = '🎤';
-      hint.textContent = 'Appuyez pour parler';
-      parseVoice(txt.textContent);
-      parsed.style.display = 'block';
-      return;
-    }
-    isRecording = true;
-    btn.classList.add('recording');
-    btn.textContent = '🛑';
-    hint.textContent = 'Parlez maintenant... (mode demo)';
-    box.style.display = 'block';
-    parsed.style.display = 'none';
-    txt.textContent = '';
-    status.textContent = '⚠️ Mode demo (navigateur sans reconnaissance vocale)';
-    const DEMO = "Cote de boeuf Angus 1.2 kg a moins 40 pourcent prix 18 euros 90";
-    let i = 0;
-    window._recInterval = setInterval(() => {
-      if (i <= DEMO.length) { txt.textContent = DEMO.slice(0,i); i++; }
-      else {
-        clearInterval(window._recInterval);
-        isRecording = false;
-        btn.classList.remove('recording');
-        btn.textContent = '🎤';
-        hint.textContent = 'Appuyez pour parler';
+      setTimeout(function() {
+        parseProVoice(transcript);
         status.textContent = '';
-        parseVoice(txt.textContent);
-        parsed.style.display = 'block';
-      }
-    }, 40);
+        document.getElementById('voice-check').style.display = 'inline';
+        document.getElementById('pro-result-card').style.display = 'block';
+      }, 600);
+    };
+    proRecognition.onerror = function() {
+      proIsRecording = false;
+      btn.textContent = '🎤';
+      btn.style.background = '#f97316';
+      status.textContent = 'Micro non disponible - mode demo';
+      runDemoVoice(txt, btn, hint, status);
+    };
+    proRecognition.start();
+  } else {
+    runDemoVoice(txt, btn, hint, status);
   }
 }
 
-function parseVoice(text) {
+function runDemoVoice(txt, btn, hint, status) {
+  if (proIsRecording) return;
+  proIsRecording = true;
+  btn.textContent = 'X';
+  btn.style.background = '#ef4444';
+  hint.textContent = 'Mode demo...';
+  status.textContent = 'Simulation en cours...';
+  document.getElementById('pro-transcript-box').style.display = 'block';
+  txt.textContent = '';
+  const DEMO = "Mangue avion bon etat 100 kg a vendre prix de base 100 euros le kg 50 pourcent applicable des maintenant";
+  let i = 0;
+  const iv = setInterval(function() {
+    if (i <= DEMO.length) {
+      txt.textContent = DEMO.slice(0, i);
+      i++;
+    } else {
+      clearInterval(iv);
+      proIsRecording = false;
+      btn.textContent = '🎤';
+      btn.style.background = '#10b981';
+      hint.textContent = 'Note vocale enregistree!';
+      status.textContent = '';
+      parseProVoice(txt.textContent);
+      document.getElementById('voice-check').style.display = 'inline';
+      document.getElementById('pro-result-card').style.display = 'block';
+    }
+  }, 35);
+}
+
+function parseProVoice(text) {
   const t = text.toLowerCase();
-  // Extract product name (first words before quantity/price keywords)
-  const nameMatch = t.match(/^(.+?)(?:(?:\d)|(?:kg|g |litre|piece|euro|moins|remise|pourcent))/);
-  document.getElementById('v-name').value = nameMatch ? nameMatch[1].trim().replace(/^\w/, c => c.toUpperCase()) : text.split(' ').slice(0,3).join(' ');
-  // Price
-  const priceMatch = t.match(/(\d+)[.,\s](\d+)\s*euro/) || t.match(/(\d+)\s*euro/);
-  if (priceMatch) document.getElementById('v-price').value = priceMatch[2] ? priceMatch[1]+'.'+priceMatch[2] : priceMatch[1];
+
+  // Extract product name - words before numeric/quantity keywords
+  let name = text;
+  const nameStop = t.search(/\d|kg|litre|piece|unites|boite|carton|a vendre|prix|euro|pourcent|remise/);
+  if (nameStop > 2) name = text.slice(0, nameStop).trim().replace(/[,.]$/, '');
+  name = name.charAt(0).toUpperCase() + name.slice(1);
+
+  // Price - look for number before euro/euros
+  let price = '';
+  const priceMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|euro)/);
+  if (priceMatch) price = priceMatch[1].replace(',', '.');
+
   // Discount
-  const discountMatch = t.match(/(\d+)\s*(?:pourcent|%|pour cent)/);
-  if (discountMatch) document.getElementById('v-discount').value = discountMatch[1];
-  // Qty
-  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|litre|l |piece|unite|carton)/);
-  if (qtyMatch) document.getElementById('v-qty').value = qtyMatch[1] + ' ' + qtyMatch[2];
+  let discount = '';
+  const discMatch = t.match(/(\d+)\s*(?:pourcent|pour cent|%)/);
+  if (discMatch) discount = discMatch[1];
+
+  // Quantity
+  let qty = '';
+  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g\b|litres?|pieces?|unites?|boites?|cartons?)/);
+  if (qtyMatch) qty = qtyMatch[1] + ' ' + qtyMatch[2];
+
+  // Fill the result form
+  document.getElementById('result-name').value = name;
+  if (price) document.getElementById('result-orig').value = price;
+  if (discount) document.getElementById('result-discount').value = discount;
+  if (qty) document.getElementById('result-qty').value = qty;
+  recalcFlash();
+  checkProReady();
 }
 
-// CAMERA
-function handlePhoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = document.getElementById('camera-img');
-    img.src = e.target.result;
-    img.style.display = 'block';
-    document.getElementById('camera-placeholder').style.display = 'none';
-    // Simulate AI analysis
-    const analysis = document.getElementById('ai-analysis-result');
-    const analysisText = document.getElementById('ai-analysis-text');
-    analysisText.textContent = '⏳ Analyse en cours...';
-    analysis.style.display = 'block';
-    setTimeout(() => {
-      analysisText.textContent = '✅ Fraicheur confirmee · Aspect visuel optimal · Qualite A+ · Pret a vendre';
-      document.getElementById('camera-form').style.display = 'block';
-    }, 1500);
-  };
-  reader.readAsDataURL(file);
-}
-
-// MANUAL
-let selectedExpiry = "Aujourd'hui";
-function setExpiry(btn, val) {
-  selectedExpiry = val;
-  document.querySelectorAll('.expiry-btn').forEach(b => { b.style.background = '#1e293b'; b.style.color = '#94a3b8'; b.style.borderColor = '#334155'; });
-  btn.style.background = 'rgba(249,115,22,0.2)';
-  btn.style.color = '#f97316';
-  btn.style.borderColor = '#f97316';
-}
-
-function calcPrice() {
-  const orig = parseFloat(document.getElementById('m-orig').value);
-  const disc = parseFloat(document.getElementById('m-discount').value);
-  const el = document.getElementById('m-flash-price');
-  if (orig && disc) el.textContent = (orig * (1 - disc/100)).toFixed(2) + '€';
-  else el.textContent = '—';
-}
-
-let manualPhotoData = null;
-function handleManualPhoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    manualPhotoData = e.target.result;
-    const btn = document.getElementById('m-photo-btn');
-    btn.innerHTML = '<img src="'+e.target.result+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:8px" /> Photo ajoutee ✅';
-    btn.style.color = '#34d399';
-    btn.style.borderColor = '#34d399';
-  };
-  reader.readAsDataURL(file);
-}
-
-// PUBLISH
-let myOffers = [];
-
-function publishOffer(source) {
-  let offer = {};
-  if (source === 'manual') {
-    const name = document.getElementById('m-name').value.trim();
-    const merchant = document.getElementById('m-merchant').value.trim();
-    const orig = parseFloat(document.getElementById('m-orig').value);
-    const disc = parseFloat(document.getElementById('m-discount').value);
-    if (!name || !orig || !disc) { showToast('⚠️ Remplissez les champs obligatoires'); return; }
-    offer = {
-      id: Date.now(), name, merchant: merchant || 'Mon commerce',
-      price: parseFloat((orig*(1-disc/100)).toFixed(2)), orig, discount: disc,
-      weight: document.getElementById('m-qty').value || '',
-      desc: document.getElementById('m-desc').value || '',
-      cat: document.getElementById('m-cat').value,
-      expiry: selectedExpiry,
-      photo: manualPhotoData || null,
-      badge: 'FLASH', badgeColor: '#f97316', source: 'manuel'
-    };
-  } else if (source === 'voice') {
-    const name = document.getElementById('v-name').value.trim();
-    const price = parseFloat(document.getElementById('v-price').value);
-    const disc = parseFloat(document.getElementById('v-discount').value);
-    if (!name) { showToast("Dictez votre offre d'abord"); return; }
-    offer = {
-      id: Date.now(), name, merchant: 'Mon commerce',
-      price: price || 0, orig: price ? price/(1-disc/100) : 0, discount: disc || 0,
-      weight: document.getElementById('v-qty').value || '',
-      expiry: "Aujourd'hui", badge: "FLASH", badgeColor: "#f97316", source: "vocal"
-    };
-  } else if (source === 'camera') {
-    const name = document.getElementById('c-name').value.trim();
-    const price = parseFloat(document.getElementById('c-price').value);
-    const disc = parseFloat(document.getElementById('c-discount').value);
-    if (!name) { showToast('⚠️ Remplissez le nom du produit'); return; }
-    const img = document.getElementById('camera-img');
-    offer = {
-      id: Date.now(), name, merchant: document.getElementById('c-merchant').value || 'Mon commerce',
-      price: price || 0, orig: price ? parseFloat((price/(1-disc/100)).toFixed(2)) : 0, discount: disc || 0,
-      weight: document.getElementById('c-qty').value || '',
-      expiry: "Aujourd'hui", badge: "FLASH", badgeColor: "#f97316",
-      photo: img.style.display !== 'none' ? img.src : null, source: 'photo'
-    };
+function recalcFlash() {
+  const orig = parseFloat(document.getElementById('result-orig').value);
+  const disc = parseFloat(document.getElementById('result-discount').value);
+  const flashEl = document.getElementById('result-flash-price');
+  const saveEl = document.getElementById('result-saving');
+  if (orig && disc) {
+    const flash = orig * (1 - disc / 100);
+    const saving = orig - flash;
+    flashEl.textContent = flash.toFixed(2) + ' EUR';
+    saveEl.textContent = '-' + saving.toFixed(2) + ' EUR';
+  } else if (orig) {
+    flashEl.textContent = orig.toFixed(2) + ' EUR';
+    saveEl.textContent = '—';
+  } else {
+    flashEl.textContent = '—';
+    saveEl.textContent = '—';
   }
+}
 
-  myOffers.unshift(offer);
+function checkProReady() {
+  const name = document.getElementById('result-name') && document.getElementById('result-name').value;
+  if (name) {
+    document.getElementById('pro-result-card').style.display = 'block';
+  }
+}
 
-  // Also add to main deals feed
+function publishProOffer() {
+  const name = document.getElementById('result-name').value.trim();
+  if (!name) { showToast('Ajoutez un nom de produit'); return; }
+  const orig = parseFloat(document.getElementById('result-orig').value) || 0;
+  const disc = parseFloat(document.getElementById('result-discount').value) || 0;
+  const flash = disc ? parseFloat((orig * (1 - disc / 100)).toFixed(2)) : orig;
+  const qty = document.getElementById('result-qty').value || '';
+  const merchant = document.getElementById('result-merchant').value || 'Mon commerce';
+
+  const offer = {
+    id: Date.now(), name, merchant, orig, price: flash, discount: disc,
+    weight: qty, photo: proPhotoData,
+    expiry: "Aujourd'hui", badge: 'FLASH', badgeColor: '#f97316',
+    cat: 'pret', co2: 0.3, timer: '24h 00m',
+    bg: proPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+    desc: document.getElementById('pro-transcript-text').textContent || ''
+  };
+
+  proOffers.unshift(offer);
+
+  // Add to main feed
   DEALS.unshift({
-    id: offer.id, cat: offer.cat || 'pret', name: offer.name,
+    id: offer.id, cat: offer.cat, name: offer.name,
     merchant: offer.merchant, origin: 'Local',
     discount: offer.discount, price: offer.price, orig: offer.orig,
-    weight: offer.weight, expiry: offer.expiry,
-    timer: '24h 00m', ai: null,
-    badge: offer.badge, badgeColor: offer.badgeColor,
-    co2: 0.3, bg: offer.photo || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
-    photo: offer.photo || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80',
-    desc: offer.desc || ''
+    weight: offer.weight, expiry: offer.expiry, timer: offer.timer,
+    ai: null, badge: offer.badge, badgeColor: offer.badgeColor,
+    co2: 0.3, bg: offer.bg, photo: offer.bg,
+    desc: offer.desc
   });
 
-  showToast('🚀 Offre publiee dans le feed !');
-  showProTab('mydeals');
-  renderMyDeals();
+  const btn = document.getElementById('btn-pro-publish');
+  btn.textContent = 'Publie dans le Feed!';
+  btn.style.background = '#10b981';
+  showToast('Offre publiee!');
+  document.getElementById('pro-status-badge').textContent = 'Offre active!';
+
+  // Show my offers
+  document.getElementById('pro-my-offers-section').style.display = 'block';
+  renderProOffers();
+
+  // Reset after 2s
+  setTimeout(resetProMode, 3000);
 }
 
-function renderMyDeals() {
-  const el = document.getElementById('mydeals-list');
-  if (!myOffers.length) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:48px;margin-bottom:12px">📦</div><p style="font-weight:700">Aucune offre publiee</p><p style="font-size:13px;margin-top:8px">Creez votre premiere offre dans les onglets Vocal, Camera ou Manuel</p></div>';
+function resetProMode() {
+  proPhotoData = null;
+  proIsRecording = false;
+  document.getElementById('pro-photo-img').style.display = 'none';
+  document.getElementById('photo-placeholder').style.display = 'block';
+  document.getElementById('photo-check').style.display = 'none';
+  document.getElementById('ai-result-box').style.display = 'none';
+  document.getElementById('ai-scan-overlay').style.display = 'none';
+  document.getElementById('voice-check').style.display = 'none';
+  document.getElementById('pro-transcript-box').style.display = 'none';
+  document.getElementById('pro-transcript-text').textContent = '';
+  document.getElementById('pro-result-card').style.display = 'none';
+  document.getElementById('result-name').value = '';
+  document.getElementById('result-orig').value = '';
+  document.getElementById('result-discount').value = '';
+  document.getElementById('result-qty').value = '';
+  document.getElementById('result-merchant').value = '';
+  document.getElementById('result-flash-price').textContent = '—';
+  document.getElementById('result-saving').textContent = '—';
+  document.getElementById('result-photo').style.display = 'none';
+  document.getElementById('pro-mic-btn').textContent = '🎤';
+  document.getElementById('pro-mic-btn').style.background = '#f97316';
+  document.getElementById('pro-mic-hint').textContent = 'Decrivez votre produit, quantite, prix, remise';
+  document.getElementById('pro-status-badge').textContent = 'Pret';
+  const btn = document.getElementById('btn-pro-publish');
+  if (btn) { btn.textContent = 'Publier dans le Feed'; btn.style.background = '#f97316'; }
+}
+
+function renderProOffers() {
+  const el = document.getElementById('pro-offers-list');
+  if (!proOffers.length) {
+    el.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Aucune offre publiee</p>';
     return;
   }
-  el.innerHTML = myOffers.map(o => `
-    <div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:16px;padding:16px;margin-bottom:12px;display:flex;gap:12px;align-items:center">
-      ${o.photo ? `<img src="${o.photo}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0" />` : `<div style="width:64px;height:64px;border-radius:12px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">📦</div>`}
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-          <span style="background:${o.badgeColor};color:white;font-size:9px;font-weight:900;padding:2px 8px;border-radius:999px">${o.badge}</span>
-          <span style="font-size:10px;color:#64748b">${o.source}</span>
-        </div>
-        <p style="font-weight:700;font-size:14px">${o.name}</p>
-        <p style="font-size:12px;color:#64748b">${o.merchant} · ${o.weight || ''}</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-          <span style="font-size:18px;font-weight:900;color:#34d399">${o.price}€ <span style="font-size:12px;color:#475569;text-decoration:line-through">${o.orig ? o.orig.toFixed(2)+'€' : ''}</span></span>
-          <span style="font-size:11px;color:#f97316;font-weight:700">-${o.discount}% · ${o.expiry}</span>
-        </div>
-      </div>
-      <button onclick="deleteOffer(${o.id})" style="background:#1e293b;border:none;border-radius:8px;padding:8px;color:#ef4444;cursor:pointer;font-size:16px">🗑</button>
-    </div>`).join('');
+  el.innerHTML = proOffers.map(function(o) {
+    return '<div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:10px">'
+      + (o.photo ? '<img src="'+o.photo+'" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0" />' : '<div style="width:60px;height:60px;border-radius:10px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">📦</div>')
+      + '<div style="flex:1"><p style="font-weight:700;font-size:14px">'+o.name+'</p>'
+      + '<p style="font-size:12px;color:#64748b">'+o.merchant+' - '+o.weight+'</p>'
+      + '<div style="display:flex;justify-content:space-between;margin-top:4px">'
+      + '<span style="font-size:16px;font-weight:900;color:#34d399">'+o.price.toFixed(2)+'EUR</span>'
+      + '<span style="font-size:11px;color:#f97316;font-weight:700">-'+o.discount+'% - '+o.expiry+'</span>'
+      + '</div></div>'
+      + '<button onclick="deleteProOffer('+o.id+')" style="background:#1e293b;border:none;border-radius:8px;padding:8px;color:#ef4444;cursor:pointer;font-size:16px">X</button>'
+      + '</div>';
+  }).join('');
 }
 
-function deleteOffer(id) {
-  myOffers = myOffers.filter(o => o.id !== id);
-  renderMyDeals();
-  showToast('🗑 Offre supprimee');
+function deleteProOffer(id) {
+  proOffers = proOffers.filter(function(o) { return o.id !== id; });
+  renderProOffers();
+  showToast('Offre supprimee');
 }
+
+// Keep old functions for compatibility
+function toggleMic() { toggleProMic(); }
+function publish() { publishProOffer(); }
+function analyzePhoto() {}
+function showProTab() {}
+
 
 // INIT
 renderDeal();
