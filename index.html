@@ -344,6 +344,24 @@
             <input id="result-qty" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" placeholder="ex: 100kg" />
           </div>
         </div>
+        <div style="margin-bottom:12px">
+          <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:6px">CATEGORIE</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+            <button onclick="setCat(this,'viande')" class="cat-pick-btn" style="padding:8px 12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#fca5a5;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥩 Viande</button>
+            <button onclick="setCat(this,'cave')" class="cat-pick-btn" style="padding:8px 12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#c4b5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍷 Cave</button>
+            <button onclick="setCat(this,'primeur')" class="cat-pick-btn" style="padding:8px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#6ee7b7;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥦 Primeur</button>
+            <button onclick="setCat(this,'laitier')" class="cat-pick-btn" style="padding:8px 12px;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.3);border-radius:10px;color:#fde68a;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🧀 Laitier</button>
+            <button onclick="setCat(this,'pret')" class="cat-pick-btn" style="padding:8px 12px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍱 Pret</button>
+          </div>
+          <select id="result-cat" onchange="updateCatBadge(this.value)" style="display:none">
+            <option value="viande">Viande</option>
+            <option value="cave">Cave</option>
+            <option value="primeur">Primeur</option>
+            <option value="laitier">Laitier</option>
+            <option value="pret" selected>Pret a manger</option>
+          </select>
+          <div id="result-cat-badge" style="font-size:13px;font-weight:700;color:#f97316;padding:4px 0"></div>
+        </div>
         <div style="background:linear-gradient(to right,rgba(6,78,59,0.5),rgba(19,78,74,0.3));border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div>
             <p style="font-size:11px;color:#6ee7b7;font-weight:700">Prix flash</p>
@@ -612,11 +630,32 @@ function bid(priceId, bidsId) {
   showToast('💰 Mise enregistree !');
 }
 
-// PRO MODE - Photo + Voice unified
+// PRO MODE - Photo + Voice + Manual unified
 let proPhotoData = null;
 let proIsRecording = false;
 let proRecognition = null;
 let proOffers = [];
+
+// Category detection from text
+function detectCategory(text) {
+  const t = text.toLowerCase();
+  const cats = {
+    viande: ['boeuf','veau','agneau','porc','poulet','dinde','canard','lapin','gibier','steak','cote','filet','roti','saucisse','jambon','charcuterie','volaille','viande','boucherie'],
+    cave: ['vin','rouge','blanc','rose','champagne','prosecco','biere','cidre','alcool','spiritueux','whisky','rhum','vodka','cave','bouteille','litre','cl','magnum'],
+    primeur: ['tomate','salade','laitue','carotte','courgette','aubergine','poivron','concombre','brocoli','epinard','haricot','petit pois','champignon','oignon','ail','pomme de terre','patate','mangue','banane','orange','citron','pomme','poire','fraise','framboise','melon','pastèque','ananas','kiwi','raisin','abricot','peche','cerise','fruit','legume','primeur','maraicher'],
+    laitier: ['fromage','beurre','creme','yaourt','lait','feta','mozzarella','camembert','brie','comte','emmental','gruyere','parmesan','laitier','fromagerie'],
+    pret: ['sushi','pizza','plat','sandwich','salade composee','repas','cuisine','traiteur','pret','box','bento','wrap','burger']
+  };
+  for (const [cat, keywords] of Object.entries(cats)) {
+    for (const kw of keywords) {
+      if (t.includes(kw)) return cat;
+    }
+  }
+  return 'pret';
+}
+
+const CAT_LABELS = { viande:'Viande', cave:'Cave', primeur:'Primeur', laitier:'Laitier', pret:'Pret a manger' };
+const CAT_EMOJI = { viande:'🥩', cave:'🍷', primeur:'🥦', laitier:'🧀', pret:'🍱' };
 
 function handleProPhoto(event) {
   const file = event.target.files[0];
@@ -629,24 +668,18 @@ function handleProPhoto(event) {
     img.style.display = 'block';
     document.getElementById('photo-placeholder').style.display = 'none';
     document.getElementById('photo-check').style.display = 'inline';
-    // Show AI scan overlay
     const overlay = document.getElementById('ai-scan-overlay');
     overlay.style.display = 'flex';
-    // Simulate AI analysis
     setTimeout(function() {
       overlay.style.display = 'none';
       const resultBox = document.getElementById('ai-result-box');
       resultBox.style.display = 'block';
       document.getElementById('ai-result-text').textContent = 'Produit identifie - Aspect visuel optimal - Fraicheur A+ - Pret a vendre';
-      document.getElementById('pro-status-badge').textContent = 'Photo OK';
-      document.getElementById('pro-status-badge').style.background = 'rgba(16,185,129,0.2)';
-      document.getElementById('pro-status-badge').style.color = '#34d399';
-      // Show photo in result card
       const rPhoto = document.getElementById('result-photo');
       rPhoto.src = e.target.result;
       rPhoto.style.display = 'block';
-      checkProReady();
-    }, 1800);
+      document.getElementById('pro-result-card').style.display = 'block';
+    }, 1500);
   };
   reader.readAsDataURL(file);
 }
@@ -658,100 +691,96 @@ function toggleProMic() {
   const box = document.getElementById('pro-transcript-box');
   const txt = document.getElementById('pro-transcript-text');
 
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    if (proIsRecording) {
-      if (proRecognition) proRecognition.stop();
-      return;
+  if (proIsRecording) {
+    if (proRecognition) proRecognition.stop();
+    else {
+      // Stop demo
+      proIsRecording = false;
+      btn.textContent = '🎤';
+      btn.style.background = '#f97316';
     }
+    return;
+  }
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     proRecognition = new SR();
     proRecognition.lang = 'fr-FR';
     proRecognition.continuous = true;
     proRecognition.interimResults = true;
+
     proRecognition.onstart = function() {
       proIsRecording = true;
-      btn.textContent = 'X';
+      btn.innerHTML = '⏹';
       btn.style.background = '#ef4444';
       btn.style.boxShadow = '0 0 0 8px rgba(239,68,68,0.3)';
-      hint.textContent = 'Parlez maintenant...';
+      hint.textContent = 'Parlez... Appuyez pour arreter';
       status.textContent = 'Enregistrement en cours...';
       box.style.display = 'block';
       txt.textContent = '';
     };
+
     proRecognition.onresult = function(e) {
       let transcript = '';
-      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
-      txt.textContent = transcript;
+      for (let i = 0; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript + ' ';
+      }
+      txt.textContent = transcript.trim();
     };
+
     proRecognition.onend = function() {
       proIsRecording = false;
-      btn.textContent = '🎤';
+      btn.textContent = '✅';
       btn.style.background = '#10b981';
       btn.style.boxShadow = '0 8px 24px rgba(16,185,129,0.4)';
       hint.textContent = 'Note vocale enregistree!';
       status.textContent = 'Analyse en cours...';
       const transcript = txt.textContent;
       setTimeout(function() {
-        parseProVoice(transcript);
-        status.textContent = '';
-        document.getElementById('voice-check').style.display = 'inline';
-        document.getElementById('pro-result-card').style.display = 'block';
-      }, 600);
+        if (transcript) {
+          parseProVoice(transcript);
+          status.textContent = '';
+          document.getElementById('voice-check').style.display = 'inline';
+          document.getElementById('pro-result-card').style.display = 'block';
+        }
+      }, 400);
     };
-    proRecognition.onerror = function() {
+
+    proRecognition.onerror = function(e) {
       proIsRecording = false;
       btn.textContent = '🎤';
       btn.style.background = '#f97316';
-      status.textContent = 'Micro non disponible - mode demo';
-      runDemoVoice(txt, btn, hint, status);
+      btn.style.boxShadow = '';
+      if (e.error === 'not-allowed') {
+        status.textContent = 'Autorisez le micro dans votre navigateur';
+        showToast('Autorisez le micro dans les parametres');
+      } else {
+        status.textContent = 'Erreur micro - Saisissez manuellement';
+      }
     };
-    proRecognition.start();
-  } else {
-    runDemoVoice(txt, btn, hint, status);
-  }
-}
 
-function runDemoVoice(txt, btn, hint, status) {
-  if (proIsRecording) return;
-  proIsRecording = true;
-  btn.textContent = 'X';
-  btn.style.background = '#ef4444';
-  hint.textContent = 'Mode demo...';
-  status.textContent = 'Simulation en cours...';
-  document.getElementById('pro-transcript-box').style.display = 'block';
-  txt.textContent = '';
-  const DEMO = "Mangue avion bon etat 100 kg a vendre prix de base 100 euros le kg 50 pourcent applicable des maintenant";
-  let i = 0;
-  const iv = setInterval(function() {
-    if (i <= DEMO.length) {
-      txt.textContent = DEMO.slice(0, i);
-      i++;
-    } else {
-      clearInterval(iv);
-      proIsRecording = false;
-      btn.textContent = '🎤';
-      btn.style.background = '#10b981';
-      hint.textContent = 'Note vocale enregistree!';
-      status.textContent = '';
-      parseProVoice(txt.textContent);
-      document.getElementById('voice-check').style.display = 'inline';
-      document.getElementById('pro-result-card').style.display = 'block';
-    }
-  }, 35);
+    proRecognition.start();
+
+  } else {
+    // No speech API - show manual mode
+    status.textContent = 'Micro non disponible - Saisissez manuellement ci-dessous';
+    document.getElementById('pro-result-card').style.display = 'block';
+    btn.style.opacity = '0.5';
+  }
 }
 
 function parseProVoice(text) {
   const t = text.toLowerCase();
 
-  // Extract product name - words before numeric/quantity keywords
+  // Product name: words before first number or keyword
   let name = text;
-  const nameStop = t.search(/\d|kg|litre|piece|unites|boite|carton|a vendre|prix|euro|pourcent|remise/);
-  if (nameStop > 2) name = text.slice(0, nameStop).trim().replace(/[,.]$/, '');
+  const stopIdx = t.search(/\d|kg\b|g\b|litre|piece|unites|boite|carton|a vendre|prix|euros?|pourcent|%|remise|promotion/);
+  if (stopIdx > 2) name = text.slice(0, stopIdx).trim().replace(/[,.\-]$/, '');
   name = name.charAt(0).toUpperCase() + name.slice(1);
 
-  // Price - look for number before euro/euros
+  // Price: number before euro(s)
   let price = '';
-  const priceMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|euro)/);
+  const priceMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|eur\b)/);
   if (priceMatch) price = priceMatch[1].replace(',', '.');
 
   // Discount
@@ -761,16 +790,37 @@ function parseProVoice(text) {
 
   // Quantity
   let qty = '';
-  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g\b|litres?|pieces?|unites?|boites?|cartons?)/);
+  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g\b|litres?|pieces?|unites?|boites?|cartons?|ml|cl)/);
   if (qtyMatch) qty = qtyMatch[1] + ' ' + qtyMatch[2];
 
-  // Fill the result form
+  // Category
+  const cat = detectCategory(text);
+
+  // Fill form
   document.getElementById('result-name').value = name;
   if (price) document.getElementById('result-orig').value = price;
   if (discount) document.getElementById('result-discount').value = discount;
   if (qty) document.getElementById('result-qty').value = qty;
+  document.getElementById('result-cat').value = cat;
+  updateCatBadge(cat);
   recalcFlash();
-  checkProReady();
+}
+
+function updateCatBadge(cat) {
+  const badge = document.getElementById('result-cat-badge');
+  if (badge) badge.textContent = (CAT_EMOJI[cat] || '') + ' ' + (CAT_LABELS[cat] || cat);
+}
+
+function setCat(btn, cat) {
+  document.getElementById('result-cat').value = cat;
+  updateCatBadge(cat);
+  document.querySelectorAll('.cat-pick-btn').forEach(function(b) {
+    b.style.opacity = '0.5';
+    b.style.transform = 'scale(1)';
+  });
+  btn.style.opacity = '1';
+  btn.style.transform = 'scale(1.08)';
+  btn.style.boxShadow = '0 4px 12px rgba(249,115,22,0.3)';
 }
 
 function recalcFlash() {
@@ -780,22 +830,14 @@ function recalcFlash() {
   const saveEl = document.getElementById('result-saving');
   if (orig && disc) {
     const flash = orig * (1 - disc / 100);
-    const saving = orig - flash;
     flashEl.textContent = flash.toFixed(2) + ' EUR';
-    saveEl.textContent = '-' + saving.toFixed(2) + ' EUR';
+    saveEl.textContent = '-' + (orig - flash).toFixed(2) + ' EUR';
   } else if (orig) {
     flashEl.textContent = orig.toFixed(2) + ' EUR';
     saveEl.textContent = '—';
   } else {
     flashEl.textContent = '—';
     saveEl.textContent = '—';
-  }
-}
-
-function checkProReady() {
-  const name = document.getElementById('result-name') && document.getElementById('result-name').value;
-  if (name) {
-    document.getElementById('pro-result-card').style.display = 'block';
   }
 }
 
@@ -806,67 +848,58 @@ function publishProOffer() {
   const disc = parseFloat(document.getElementById('result-discount').value) || 0;
   const flash = disc ? parseFloat((orig * (1 - disc / 100)).toFixed(2)) : orig;
   const qty = document.getElementById('result-qty').value || '';
-  const merchant = document.getElementById('result-merchant').value || 'Mon commerce';
+  const merchant = document.getElementById('result-merchant').value.trim() || 'Mon commerce';
+  const cat = document.getElementById('result-cat').value || 'pret';
 
-  const offer = {
-    id: Date.now(), name, merchant, orig, price: flash, discount: disc,
-    weight: qty, photo: proPhotoData,
-    expiry: "Aujourd'hui", badge: 'FLASH', badgeColor: '#f97316',
-    cat: 'pret', co2: 0.3, timer: '24h 00m',
+  const newDeal = {
+    id: Date.now(), cat: cat, name: name,
+    merchant: merchant, origin: 'Local',
+    discount: disc, price: flash, orig: orig,
+    weight: qty, expiry: "Aujourd'hui", timer: '24h 00m',
+    ai: null, badge: 'FLASH', badgeColor: '#f97316',
+    co2: 0.3,
     bg: proPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+    photo: proPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80',
     desc: document.getElementById('pro-transcript-text').textContent || ''
   };
 
-  proOffers.unshift(offer);
+  proOffers.unshift(newDeal);
+  DEALS.unshift(newDeal);
 
-  // Add to main feed
-  DEALS.unshift({
-    id: offer.id, cat: offer.cat, name: offer.name,
-    merchant: offer.merchant, origin: 'Local',
-    discount: offer.discount, price: offer.price, orig: offer.orig,
-    weight: offer.weight, expiry: offer.expiry, timer: offer.timer,
-    ai: null, badge: offer.badge, badgeColor: offer.badgeColor,
-    co2: 0.3, bg: offer.bg, photo: offer.bg,
-    desc: offer.desc
-  });
-
+  const catLabel = CAT_LABELS[cat] || cat;
   const btn = document.getElementById('btn-pro-publish');
-  btn.textContent = 'Publie dans le Feed!';
+  btn.textContent = 'Publie dans ' + catLabel + '!';
   btn.style.background = '#10b981';
-  showToast('Offre publiee!');
-  document.getElementById('pro-status-badge').textContent = 'Offre active!';
+  showToast('Offre publiee dans ' + catLabel + '!');
 
-  // Show my offers
   document.getElementById('pro-my-offers-section').style.display = 'block';
   renderProOffers();
-
-  // Reset after 2s
-  setTimeout(resetProMode, 3000);
+  setTimeout(resetProMode, 2500);
 }
 
 function resetProMode() {
   proPhotoData = null;
   proIsRecording = false;
-  document.getElementById('pro-photo-img').style.display = 'none';
+  const ids = ['pro-photo-img','photo-check','ai-result-box','ai-scan-overlay','voice-check','pro-transcript-box','pro-result-card'];
+  ids.forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
   document.getElementById('photo-placeholder').style.display = 'block';
-  document.getElementById('photo-check').style.display = 'none';
-  document.getElementById('ai-result-box').style.display = 'none';
-  document.getElementById('ai-scan-overlay').style.display = 'none';
-  document.getElementById('voice-check').style.display = 'none';
-  document.getElementById('pro-transcript-box').style.display = 'none';
   document.getElementById('pro-transcript-text').textContent = '';
-  document.getElementById('pro-result-card').style.display = 'none';
-  document.getElementById('result-name').value = '';
-  document.getElementById('result-orig').value = '';
-  document.getElementById('result-discount').value = '';
-  document.getElementById('result-qty').value = '';
-  document.getElementById('result-merchant').value = '';
+  ['result-name','result-orig','result-discount','result-qty','result-merchant'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   document.getElementById('result-flash-price').textContent = '—';
   document.getElementById('result-saving').textContent = '—';
   document.getElementById('result-photo').style.display = 'none';
   document.getElementById('pro-mic-btn').textContent = '🎤';
   document.getElementById('pro-mic-btn').style.background = '#f97316';
+  document.getElementById('pro-mic-btn').style.boxShadow = '0 8px 24px rgba(249,115,22,0.4)';
+  document.getElementById('pro-mic-btn').style.opacity = '1';
   document.getElementById('pro-mic-hint').textContent = 'Decrivez votre produit, quantite, prix, remise';
+  document.getElementById('pro-mic-status').textContent = '';
   document.getElementById('pro-status-badge').textContent = 'Pret';
   const btn = document.getElementById('btn-pro-publish');
   if (btn) { btn.textContent = 'Publier dans le Feed'; btn.style.background = '#f97316'; }
@@ -879,9 +912,12 @@ function renderProOffers() {
     return;
   }
   el.innerHTML = proOffers.map(function(o) {
+    const catEmoji = CAT_EMOJI[o.cat] || '📦';
     return '<div style="background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:10px">'
-      + (o.photo ? '<img src="'+o.photo+'" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0" />' : '<div style="width:60px;height:60px;border-radius:10px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">📦</div>')
-      + '<div style="flex:1"><p style="font-weight:700;font-size:14px">'+o.name+'</p>'
+      + (o.photo && o.photo.startsWith('data:') ? '<img src="'+o.photo+'" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0" />' : '<div style="width:60px;height:60px;border-radius:10px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">'+catEmoji+'</div>')
+      + '<div style="flex:1">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;background:rgba(249,115,22,0.2);color:#fb923c;padding:2px 8px;border-radius:999px;font-weight:700">'+catEmoji+' '+(CAT_LABELS[o.cat]||o.cat)+'</span></div>'
+      + '<p style="font-weight:700;font-size:14px">'+o.name+'</p>'
       + '<p style="font-size:12px;color:#64748b">'+o.merchant+' - '+o.weight+'</p>'
       + '<div style="display:flex;justify-content:space-between;margin-top:4px">'
       + '<span style="font-size:16px;font-weight:900;color:#34d399">'+o.price.toFixed(2)+'EUR</span>'
@@ -894,15 +930,16 @@ function renderProOffers() {
 
 function deleteProOffer(id) {
   proOffers = proOffers.filter(function(o) { return o.id !== id; });
+  DEALS = DEALS.filter(function(d) { return d.id !== id; });
   renderProOffers();
   showToast('Offre supprimee');
 }
 
-// Keep old functions for compatibility
 function toggleMic() { toggleProMic(); }
 function publish() { publishProOffer(); }
 function analyzePhoto() {}
 function showProTab() {}
+
 
 
 // INIT
