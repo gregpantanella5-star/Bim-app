@@ -446,7 +446,15 @@
       0% { transform:scale(0.8); opacity:0.6; }
       100% { transform:scale(1.4); opacity:0; }
     }
-    @keyframes dot {
+    @keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(0);    opacity: 1; }
+    to   { transform: translateY(-20px); opacity: 0; }
+  }
+  @keyframes dot {
       0%,100% { transform:scale(1); opacity:0.5; }
       50% { transform:scale(1.5); opacity:1; }
     }
@@ -2530,6 +2538,110 @@ function loadClientSession() {
 
 
 // ============================================
+// DEAL → CLIENT NOTIFICATION BRIDGE
+// ============================================
+
+function notifyClientsAboutDeal(deal) {
+  // Check if current user has notifications enabled
+  if (Notification.permission !== 'granted') return;
+
+  // Check if deal matches client preferences
+  var shouldNotify = true;
+
+  if (currentClient) {
+    // Check category preference
+    if (favCategories.length > 0 && favCategories.indexOf(deal.cat) === -1) {
+      shouldNotify = false;
+    }
+  }
+
+  if (!shouldNotify) return;
+
+  // Build rich notification
+  var merchant = deal.merchant || 'Un commerçant';
+  var price = deal.price ? deal.price.toFixed(2) + 'EUR' : '';
+  var disc = deal.discount ? '-' + deal.discount + '% ' : '';
+  var weight = deal.weight || '';
+
+  var catEmojis = { viande:'🥩', cave:'🍷', primeur:'🥦', laitier:'🧀', pret:'🍱' };
+  var emoji = catEmojis[deal.cat] || '⚡';
+
+  var title = emoji + ' ' + deal.name + ' ' + disc + '— ' + merchant;
+  var body = price + (weight ? ' · ' + weight : '') + ' · Flash disponible maintenant !';
+
+  // Small delay for realism
+  setTimeout(function() {
+    sendBimNotif(title, body, 'https://bim-app-nu.vercel.app');
+    // Also show in-app toast
+    showInAppAlert(deal);
+  }, 800);
+}
+
+function closeDealAlert() {
+  var b = document.getElementById('deal-alert-banner');
+  if (b) b.remove();
+}
+
+function showInAppAlert(deal) {
+  // Remove existing alert if any
+  var existing = document.getElementById('deal-alert-banner');
+  if (existing) existing.remove();
+
+  var catEmojis = { viande:'🥩', cave:'🍷', primeur:'🥦', laitier:'🧀', pret:'🍱' };
+  var emoji = catEmojis[deal.cat] || '⚡';
+
+  var banner = document.createElement('div');
+  banner.id = 'deal-alert-banner';
+  banner.style.cssText = [
+    'position:fixed',
+    'top:80px',
+    'left:12px',
+    'right:12px',
+    'background:linear-gradient(135deg,#1e293b,#0f172a)',
+    'border:1px solid #f97316',
+    'border-radius:18px',
+    'padding:14px 16px',
+    'z-index:999',
+    'display:flex',
+    'align-items:center',
+    'gap:12px',
+    'box-shadow:0 8px 32px rgba(249,115,22,0.4)',
+    'animation:slideDown 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+    'cursor:pointer'
+  ].join(';');
+
+  banner.innerHTML = [
+    '<div style="width:44px;height:44px;border-radius:12px;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">' + emoji + '</div>',
+    '<div style="flex:1;min-width:0">',
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">',
+        '<span style="font-size:11px;font-weight:900;color:#f97316;letter-spacing:0.5px">NOUVELLE OFFRE FLASH</span>',
+        '<span style="width:6px;height:6px;border-radius:50%;background:#f97316;animation:pulse 1s infinite;flex-shrink:0"></span>',
+      '</div>',
+      '<p style="font-size:14px;font-weight:900;color:white;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + deal.name + '</p>',
+      '<p style="font-size:12px;color:#94a3b8;margin:2px 0 0">' + deal.merchant + ' · <span style="color:#34d399;font-weight:700">' + deal.price.toFixed(2) + 'EUR</span>' + (deal.discount ? ' · <span style="color:#f97316">-' + deal.discount + '%</span>' : '') + '</p>',
+    '</div>',
+    '<button onclick="closeDealAlert()" style="background:none;border:none;color:#475569;font-size:20px;cursor:pointer;flex-shrink:0;padding:4px">&#10005;</button>'
+  ].join('');
+
+  banner.addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON') return;
+    banner.remove();
+    showTab('feed');
+  });
+
+  document.body.appendChild(banner);
+
+  // Auto-dismiss after 6 seconds
+  setTimeout(function() {
+    if (document.getElementById('deal-alert-banner')) {
+      banner.style.animation = 'slideUp 0.3s ease forwards';
+      setTimeout(function() { banner.remove(); }, 300);
+    }
+  }, 6000);
+}
+
+
+// ============================================
 // MERCHANT LOGIN + DASHBOARD
 // ============================================
 
@@ -2859,6 +2971,9 @@ function publishDashOffer() {
 
   // Save to localStorage
   saveDealToStorage(newDeal);
+
+  // Notify all connected clients
+  notifyClientsAboutDeal(newDeal);
 
   const btn = document.getElementById('dash-publish-btn');
   btn.textContent = '✅ Publie dans ' + (CAT_LABELS[cat] || cat) + '!';
