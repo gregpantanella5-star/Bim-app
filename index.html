@@ -181,6 +181,14 @@
   .leaflet-popup-content { margin: 12px 14px !important; }
   .leaflet-container { background: #1a2744 !important; font-family: Montserrat,sans-serif; }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<style>
+  .leaflet-container { font-family: Montserrat, sans-serif !important; }
+  .runner-leaflet-icon { border-radius: 50%; }
+  @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.5); opacity: 0; } }
+  .leaflet-tile-pane { filter: none; }
+</style>
 </head>
 <body>
 
@@ -501,13 +509,9 @@
     <!-- MAP VIEW -->
     <div id="ride-map-view">
       <div style="position:relative;width:100%;height:400px">
-        <!-- Real OpenStreetMap via iframe -->
-        <iframe id="osm-map" 
-          src="https://www.openstreetmap.org/export/embed.html?bbox=6.62%2C43.58%2C6.78%2C43.65&layer=mapnik&marker=43.612%2C6.700"
-          style="width:100%;height:400px;border:none;display:block"
-          loading="lazy"></iframe>
-        <!-- Canvas overlay for animated runner dots -->
-        <canvas id="bimride-map" style="position:absolute;inset:0;width:100%;height:400px;cursor:pointer;pointer-events:all" onclick="handleMapClick(event)"></canvas>
+        <div id="leaflet-map" style="width:100%;height:400px;z-index:1"></div>
+        <!-- Invisible canvas just for click detection - Leaflet handles the map -->
+        <canvas id="bimride-map" style="position:absolute;inset:0;width:100%;height:400px;pointer-events:none;opacity:0"></canvas>
       </div>
     </div>
 
@@ -594,9 +598,8 @@
       <!-- Map tracking -->
       <div style="flex:1;position:relative">
         <div style="position:relative;width:100%;height:320px">
-          <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=6.62%2C43.58%2C6.78%2C43.65&layer=mapnik"
-            style="width:100%;height:320px;border:none;display:block" loading="lazy"></iframe>
-          <canvas id="tracking-map" style="position:absolute;inset:0;width:100%;height:320px"></canvas>
+          <div id="leaflet-tracking" style="width:100%;height:320px;z-index:1"></div>
+          <canvas id="tracking-map" style="position:absolute;inset:0;width:100%;height:320px;pointer-events:none"></canvas>
         </div>
         <!-- ETA floating badge -->
         <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);border:1px solid #334155;border-radius:16px;padding:10px 20px;text-align:center;backdrop-filter:blur(10px)">
@@ -1431,131 +1434,166 @@ const VILLAGES = [
   {name:'Tourrettes', x:0.62, y:0.42, size:5},
 ];
 
+let leafletMap = null;
+let leafletMarkers = {};
+let leafletTrackingMap = null;
+let trackingMarker = null;
+let trackingLine = null;
+let pulseInterval = null;
+
+// Runner positions in real GPS coords (Fayence area)
+const RUNNER_COORDS = {
+  1: [43.6180, 6.6920],
+  2: [43.6050, 6.7200],
+  3: [43.6320, 6.7050],
+  4: [43.5980, 6.6800],
+  5: [43.6250, 6.6650],
+};
+
 function initRideMap() {
-  mapCanvas = document.getElementById('bimride-map');
-  if (!mapCanvas) return;
-  const dpr = window.devicePixelRatio || 1;
-  const W = mapCanvas.offsetWidth || 375;
-  const H = 400;
-  mapCanvas.width = W * dpr;
-  mapCanvas.height = H * dpr;
-  mapCanvas.style.height = H + 'px';
-  mapCtx = mapCanvas.getContext('2d');
-  mapCtx.scale(dpr, dpr);
+  if (typeof L === 'undefined') {
+    console.log('Leaflet not loaded yet');
+    setTimeout(initRideMap, 500);
+    return;
+  }
 
-  RUNNERS.forEach(function(r) {
-    runnerPositions[r.id] = {x: r.lng, y: r.lat};
+  const mapEl = document.getElementById('leaflet-map');
+  if (!mapEl) return;
+
+  if (leafletMap) {
+    leafletMap.invalidateSize();
+    return;
+  }
+
+  leafletMap = L.map('leaflet-map', {
+    center: [43.612, 6.700],
+    zoom: 13,
+    zoomControl: true,
+    attributionControl: false
   });
 
-  if (mapAnimFrame) cancelAnimationFrame(mapAnimFrame);
-  animateMap();
+  // CartoDB dark tiles - works well on mobile
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd'
+  }).addTo(leafletMap);
+
+  // Add runner markers
+  RUNNERS.forEach(function(runner) {
+    addLeafletMarker(runner);
+  });
+
+  // Animate marker pulses
+  if (pulseInterval) clearInterval(pulseInterval);
+  pulseInterval = setInterval(function() {
+    animateLeafletMarkers();
+  }, 2000);
 }
 
-function animateMap() {
-  pulsePhase += 0.04;
-  RUNNERS.forEach(function(r) {
-    const pos = runnerPositions[r.id];
-    if (r.delivering) {
-      pos.x += (Math.random() - 0.5) * 0.002;
-      pos.y += (Math.random() - 0.5) * 0.002;
-    }
-    pos.x = Math.max(0.08, Math.min(0.92, pos.x));
-    pos.y = Math.max(0.08, Math.min(0.92, pos.y));
+function addLeafletMarker(runner) {
+  const coords = RUNNER_COORDS[runner.id] || [43.612, 6.700];
+  const isDelivering = runner.delivering;
+
+  const iconHtml = '<div style="width:42px;height:42px;border-radius:50%;background:' + runner.color + ';'
+    + 'border:3px solid white;display:flex;align-items:center;justify-content:center;'
+    + 'font-weight:900;font-size:15px;color:white;cursor:pointer;'
+    + 'box-shadow:0 4px 14px rgba(0,0,0,0.35);position:relative">'
+    + runner.initial
+    + '<div style="position:absolute;inset:-6px;border-radius:50%;border:3px solid ' + runner.color + ';opacity:0.5;animation:ripple 1.5s infinite ' + (runner.id*0.3) + 's"></div>'
+    + '</div>'
+    + '<div style="background:' + runner.color + ';color:white;font-size:10px;font-weight:900;'
+    + 'padding:3px 8px;border-radius:8px;text-align:center;margin-top:4px;white-space:nowrap;'
+    + 'box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + runner.eta + '</div>';
+
+  const icon = L.divIcon({
+    html: iconHtml,
+    className: '',
+    iconSize: [42, 62],
+    iconAnchor: [21, 31],
+    popupAnchor: [0, -35]
   });
-  drawMap();
-  mapAnimFrame = requestAnimationFrame(animateMap);
+
+  const marker = L.marker(coords, { icon: icon }).addTo(leafletMap);
+  marker.on('click', function() {
+    selectedRunnerId = runner.id;
+    openRunnerSheet(runner);
+  });
+
+  leafletMarkers[runner.id] = { marker, coords: [...coords], runner };
 }
 
-function drawMap() {
-  const W = mapCanvas.offsetWidth || 375;
-  const H = 400;
-  const ctx = mapCtx;
-
-  // Transparent background - real map is underneath via iframe
-  ctx.clearRect(0, 0, W, H);
-
-  // Runner trails
-  RUNNERS.forEach(function(r) {
-    if (!r.delivering) return;
-    const pos = runnerPositions[r.id];
-    const fx = VILLAGES[0].x*W, fy = VILLAGES[0].y*H;
-    const px = pos.x*W, py = pos.y*H;
-    const grad = ctx.createLinearGradient(px,py,fx,fy);
-    grad.addColorStop(0, r.color+'cc');
-    grad.addColorStop(1, r.color+'22');
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 3;
-    ctx.setLineDash([6,5]);
-    ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(fx,fy); ctx.stroke();
-    ctx.setLineDash([]);
-  });
-
-  // Runner markers
-  RUNNERS.forEach(function(r) {
-    const pos = runnerPositions[r.id];
-    const px = pos.x*W, py = pos.y*H;
-    const isSel = r.id === selectedRunnerId;
-    const pulse = Math.sin(pulsePhase + r.id * 1.2);
-    const pScale = 1 + 0.35 * pulse;
-
-    // Pulse rings
-    ctx.strokeStyle = r.color + Math.round((0.25 + 0.15*pulse)*255).toString(16).padStart(2,'0');
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(px, py, (isSel?28:20)*pScale, 0, Math.PI*2); ctx.stroke();
-    if (isSel) {
-      ctx.strokeStyle = r.color + '30';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(px, py, 38*pScale, 0, Math.PI*2); ctx.stroke();
+function animateLeafletMarkers() {
+  Object.values(leafletMarkers).forEach(function(m) {
+    if (m.runner.delivering) {
+      const dlat = (Math.random() - 0.5) * 0.001;
+      const dlng = (Math.random() - 0.5) * 0.001;
+      m.coords[0] += dlat;
+      m.coords[1] += dlng;
+      m.marker.setLatLng(m.coords);
     }
+  });
+}
 
-    // Shadow
-    ctx.shadowColor = r.color + '80';
-    ctx.shadowBlur = isSel ? 16 : 8;
+function initTrackingMap(runner) {
+  const mapEl = document.getElementById('leaflet-tracking');
+  if (!mapEl || typeof L === 'undefined') return;
 
-    // Main circle
-    ctx.fillStyle = isSel ? r.color : 'white';
-    ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = r.color;
-    ctx.lineWidth = isSel ? 3 : 2.5;
-    ctx.beginPath(); ctx.arc(px, py, 20, 0, Math.PI*2); ctx.stroke();
-    ctx.shadowBlur = 0;
+  if (leafletTrackingMap) {
+    leafletTrackingMap.remove();
+    leafletTrackingMap = null;
+  }
 
-    // Initial
-    ctx.fillStyle = isSel ? 'white' : r.color;
-    ctx.font = 'bold 13px Montserrat,sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(r.initial, px, py);
+  const startCoords = RUNNER_COORDS[runner.id] || [43.612, 6.700];
+  const destCoords = [43.612, 6.700]; // Fayence center
 
-    // ETA bubble
-    const etaW = 48, etaH = 20;
-    const bx = px - etaW/2, by = py - 38;
-    ctx.fillStyle = isSel ? r.color : 'rgba(30,41,59,0.85)';
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(bx, by, etaW, etaH, 6);
-    else ctx.rect(bx, by, etaW, etaH);
-    ctx.fill();
-    // Triangle pointer
-    ctx.beginPath(); ctx.moveTo(px-5, by+etaH); ctx.lineTo(px+5, by+etaH); ctx.lineTo(px, by+etaH+5); ctx.fill();
-
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 10px Montserrat,sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(r.eta, px, by + etaH/2);
-
-    ctx.textBaseline = 'alphabetic';
+  leafletTrackingMap = L.map('leaflet-tracking', {
+    center: startCoords,
+    zoom: 14,
+    zoomControl: false,
+    attributionControl: false
   });
 
-  // Compass
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.beginPath(); ctx.arc(W-26, 26, 16, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = '#c8d4de'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(W-26, 26, 16, 0, Math.PI*2); ctx.stroke();
-  ctx.fillStyle = '#ef4444'; ctx.font = 'bold 10px sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('N', W-26, 21);
-  ctx.fillStyle = '#94a3b8'; ctx.fillText('S', W-26, 32);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19, subdomains: 'abcd'
+  }).addTo(leafletTrackingMap);
+
+  // Route line
+  trackingLine = L.polyline([startCoords, destCoords], {
+    color: runner.color, weight: 4, dashArray: '8 6', opacity: 0.9
+  }).addTo(leafletTrackingMap);
+
+  // Runner marker
+  const runnerIcon = L.divIcon({
+    html: '<div style="width:46px;height:46px;border-radius:50%;background:' + runner.color + ';border:4px solid white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:white;box-shadow:0 6px 20px rgba(0,0,0,0.4)">' + runner.initial + '</div>',
+    className: '', iconSize: [46, 46], iconAnchor: [23, 23]
+  });
+  trackingMarker = L.marker(startCoords, { icon: runnerIcon }).addTo(leafletTrackingMap);
+
+  // Destination marker
+  const destIcon = L.divIcon({
+    html: '<div style="font-size:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">📍</div>',
+    className: '', iconSize: [32, 40], iconAnchor: [16, 40]
+  });
+  L.marker(destCoords, { icon: destIcon }).addTo(leafletTrackingMap);
+
+  // Animate runner toward destination
+  let step = 0;
+  const steps = 60;
+  const animInterval = setInterval(function() {
+    step++;
+    const t = step / steps;
+    const lat = startCoords[0] + (destCoords[0] - startCoords[0]) * t;
+    const lng = startCoords[1] + (destCoords[1] - startCoords[1]) * t;
+    if (trackingMarker) {
+      trackingMarker.setLatLng([lat + (Math.random()-0.5)*0.0005, lng + (Math.random()-0.5)*0.0005]);
+      leafletTrackingMap.panTo([lat, lng], { animate: true, duration: 0.5 });
+    }
+    if (step >= steps) clearInterval(animInterval);
+  }, (runner.etaMin * 60000) / steps);
+}
+
+function handleMapClick(event) {
+  // Leaflet handles clicks via marker.on('click')
 }
 
 function handleMapClick(event) {
@@ -1689,67 +1727,6 @@ function initTrackingMap(runner) {
 
   if (trackAnimFrame) cancelAnimationFrame(trackAnimFrame);
   animateTracking(runner);
-}
-
-function animateTracking(runner) {
-  trackPulse += 0.05;
-  drawTrackingMap(runner);
-  trackAnimFrame = requestAnimationFrame(function() { animateTracking(runner); });
-}
-
-function drawTrackingMap(runner) {
-  const pos = runnerPositions[runner.id] || {x:0.5, y:0.5};
-  const W = trackCanvas.offsetWidth || 375;
-  const H = 320;
-  const ctx = trackCtx;
-
-  // Transparent - real map underneath
-  ctx.clearRect(0,0,W,H);
-
-  // Route line (runner → Fayence)
-  const fx = VILLAGES[0].x*W, fy = VILLAGES[0].y*H;
-  const px = pos.x*W + (Math.random()-0.5)*3, py = pos.y*H + (Math.random()-0.5)*3;
-
-  const routeGrad = ctx.createLinearGradient(px,py,fx,fy);
-  routeGrad.addColorStop(0, runner.color);
-  routeGrad.addColorStop(1, runner.color+'44');
-  ctx.strokeStyle = routeGrad;
-  ctx.lineWidth = 4;
-  ctx.setLineDash([8,6]);
-  ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(fx,fy); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Destination marker (Fayence)
-  ctx.fillStyle = '#ef4444';
-  ctx.beginPath(); ctx.arc(fx, fy-12, 8, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(fx-8, fy-12); ctx.lineTo(fx+8, fy-12); ctx.lineTo(fx, fy); ctx.fill();
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(fx, fy-12, 4, 0, Math.PI*2); ctx.fill();
-
-  // Runner pulse at current pos
-  const pulse = Math.sin(trackPulse);
-  ctx.strokeStyle = runner.color + Math.round((0.3+0.2*pulse)*255).toString(16).padStart(2,'0');
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(px, py, (24+6*pulse), 0, Math.PI*2); ctx.stroke();
-
-  // Runner dot
-  ctx.shadowColor = runner.color; ctx.shadowBlur = 12;
-  ctx.fillStyle = runner.color;
-  ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'white'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI*2); ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // Runner initial
-  ctx.fillStyle = 'white';
-  ctx.font = 'bold 12px Montserrat,sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(runner.initial, px, py);
-  ctx.textBaseline = 'alphabetic';
-
-  // Progress overlay top
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.fillRect(0, 0, W * (trackingProgress/100), 4);
 }
 
 function cancelTracking() {
