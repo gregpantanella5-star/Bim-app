@@ -2541,41 +2541,86 @@ function loadClientSession() {
 // DEAL → CLIENT NOTIFICATION BRIDGE
 // ============================================
 
+var NTFY_CHANNEL = "bim-app-vertueux-2026";
+
 function notifyClientsAboutDeal(deal) {
-  // Check if current user has notifications enabled
-  if (Notification.permission !== 'granted') return;
-
-  // Check if deal matches client preferences
-  var shouldNotify = true;
-
-  if (currentClient) {
-    // Check category preference
-    if (favCategories.length > 0 && favCategories.indexOf(deal.cat) === -1) {
-      shouldNotify = false;
-    }
-  }
-
-  if (!shouldNotify) return;
-
-  // Build rich notification
-  var merchant = deal.merchant || 'Un commerçant';
-  var price = deal.price ? deal.price.toFixed(2) + 'EUR' : '';
-  var disc = deal.discount ? '-' + deal.discount + '% ' : '';
-  var weight = deal.weight || '';
-
-  var catEmojis = { viande:'🥩', cave:'🍷', primeur:'🥦', laitier:'🧀', pret:'🍱' };
-  var emoji = catEmojis[deal.cat] || '⚡';
-
-  var title = emoji + ' ' + deal.name + ' ' + disc + '— ' + merchant;
-  var body = price + (weight ? ' · ' + weight : '') + ' · Flash disponible maintenant !';
-
-  // Small delay for realism
+  var catEmojis = { viande:"🥩", cave:"🍷", primeur:"🥦", laitier:"🧀", pret:"🍱" };
+  var emoji = catEmojis[deal.cat] || "⚡";
+  var merchant = deal.merchant || "BIM";
+  var disc = deal.discount ? "-" + deal.discount + "% " : "";
+  var price = deal.price ? deal.price.toFixed(2) + "EUR" : "";
+  var weight = deal.weight ? " · " + deal.weight : "";
+  var title = emoji + " " + deal.name + " " + disc + "| " + merchant;
+  var body = price + weight + " - Offre flash disponible maintenant !";
+  sendNtfyNotification(title, body);
   setTimeout(function() {
-    sendBimNotif(title, body, 'https://bim-app-nu.vercel.app');
-    // Also show in-app toast
+    sendBimNotif(title, body, "https://bim-app-nu.vercel.app");
     showInAppAlert(deal);
   }, 800);
 }
+
+function sendNtfyNotification(title, body) {
+  fetch("https://ntfy.sh/" + NTFY_CHANNEL, {
+    method: "POST",
+    headers: {
+      "Title": title,
+      "Tags": "tada,loudspeaker",
+      "Priority": "high",
+      "Click": "https://bim-app-nu.vercel.app",
+      "Content-Type": "text/plain; charset=utf-8"
+    },
+    body: body
+  }).then(function(r) {
+    console.log("ntfy sent:", r.status);
+  }).catch(function(e) {
+    console.log("ntfy error:", e);
+  });
+}
+
+function subscribeToNtfy() {
+  if (typeof EventSource === "undefined") return;
+  var es = new EventSource("https://ntfy.sh/" + NTFY_CHANNEL + "/sse");
+  es.onmessage = function(e) {
+    try {
+      var data = JSON.parse(e.data);
+      if (data.event === "message" && data.title) {
+        showInAppAlertFromNtfy(data.title, data.message);
+        if (Notification.permission === "granted") {
+          sendBimNotif(data.title, data.message, "https://bim-app-nu.vercel.app");
+        }
+      }
+    } catch(err) {}
+  };
+  es.onerror = function() {
+    setTimeout(subscribeToNtfy, 5000);
+  };
+}
+
+function showInAppAlertFromNtfy(title, body) {
+  var existing = document.getElementById("deal-alert-banner");
+  if (existing) existing.remove();
+  var banner = document.createElement("div");
+  banner.id = "deal-alert-banner";
+  banner.style.cssText = "position:fixed;top:80px;left:12px;right:12px;background:linear-gradient(135deg,#1e293b,#0f172a);border:2px solid #f97316;border-radius:18px;padding:14px 16px;z-index:999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(249,115,22,0.5);animation:slideDown 0.4s cubic-bezier(0.34,1.56,0.64,1);cursor:pointer";
+  banner.innerHTML = "<div style='width:44px;height:44px;border-radius:12px;background:rgba(249,115,22,0.2);border:1px solid rgba(249,115,22,0.4);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0'>🔔</div>"
+    + "<div style='flex:1;min-width:0'>"
+    + "<div style='font-size:11px;font-weight:900;color:#f97316;letter-spacing:0.5px;margin-bottom:2px'>⚡ OFFRE FLASH BIM</div>"
+    + "<p style='font-size:14px;font-weight:900;color:white;margin:0;line-height:1.3'>" + title + "</p>"
+    + "<p style='font-size:12px;color:#94a3b8;margin:3px 0 0'>" + body + "</p>"
+    + "</div>"
+    + "<button onclick='closeDealAlert()' style='background:none;border:none;color:#475569;font-size:20px;cursor:pointer;flex-shrink:0;padding:4px'>&#10005;</button>";
+  banner.addEventListener("click", function(e) {
+    if (e.target.tagName === "BUTTON") return;
+    banner.remove();
+    showTab("feed");
+  });
+  document.body.appendChild(banner);
+  setTimeout(function() {
+    var b = document.getElementById("deal-alert-banner");
+    if (b) { b.style.opacity = "0"; b.style.transition = "opacity 0.3s"; setTimeout(function(){ b.remove(); }, 300); }
+  }, 7000);
+}
+
 
 function closeDealAlert() {
   var b = document.getElementById('deal-alert-banner');
@@ -3097,6 +3142,7 @@ function resetDashForm() {
 loadDealsFromStorage();
 renderDeal();
 loadClientSession();
+subscribeToNtfy();
 // Splash screen
 setTimeout(function() {
   var splash = document.getElementById('splash-screen');
