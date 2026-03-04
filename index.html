@@ -920,6 +920,7 @@
             <button onclick="toggleFavCat(this,'primeur')" data-cat="primeur" class="fav-cat-btn" style="padding:10px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;color:#6ee7b7;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥦 Primeur</button>
             <button onclick="toggleFavCat(this,'laitier')" data-cat="laitier" class="fav-cat-btn" style="padding:10px 14px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:12px;color:#fde68a;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🧀 Laitier</button>
             <button onclick="toggleFavCat(this,'pret')" data-cat="pret" class="fav-cat-btn" style="padding:10px 14px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;color:#93c5fd;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍱 Prêt</button>
+            <button onclick="toggleFavCat(this,'poisson')" data-cat="poisson" class="fav-cat-btn" style="padding:10px 14px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:12px;color:#67e8f9;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🐟 Poisson</button>
           </div>
         </div>
 
@@ -957,6 +958,93 @@
 </nav>
 
 <script>
+// ============================================
+// SUPABASE — Base de données temps réel
+// ============================================
+var SUPABASE_URL = 'https://mhouosnednmlrlmwjhfg.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_PZD6BwwPv4Jm_CNpjnNm8Q_niI9AxO4';
+var supabaseClient = null;
+var realtimeChannel = null;
+
+function initSupabase() {
+  try {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('Supabase connected!');
+    setupRealtimeDeals();
+    loadDealsFromSupabase();
+  } catch(e) {
+    console.log('Supabase init error:', e);
+  }
+}
+
+// Load existing deals from Supabase
+function loadDealsFromSupabase() {
+  if (!supabaseClient) return;
+  supabaseClient
+    .from('deals')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(50)
+    .then(function(result) {
+      if (result.error) { console.log('Load error:', result.error); return; }
+      if (result.data && result.data.length > 0) {
+        result.data.forEach(function(row) {
+          var deal = JSON.parse(row.deal_data);
+          // Add if not already in DEALS
+          if (!DEALS.find(function(d) { return d.id === deal.id; })) {
+            DEALS.push(deal);
+          }
+        });
+        renderDeal();
+        console.log('Loaded', result.data.length, 'deals from Supabase');
+      }
+    });
+}
+
+// Listen for new deals in real time
+function setupRealtimeDeals() {
+  if (!supabaseClient) return;
+  realtimeChannel = supabaseClient
+    .channel('deals-channel')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'deals'
+    }, function(payload) {
+      console.log('New deal received!', payload);
+      var deal = JSON.parse(payload.new.deal_data);
+      // Add to feed
+      if (!DEALS.find(function(d) { return d.id === deal.id; })) {
+        DEALS.unshift(deal);
+        renderDeal();
+      }
+      // Notify client
+      notifyClientsAboutDeal(deal);
+    })
+    .subscribe(function(status) {
+      console.log('Realtime status:', status);
+    });
+}
+
+// Save deal to Supabase when merchant publishes
+function saveDealToSupabase(deal) {
+  if (!supabaseClient) return;
+  supabaseClient
+    .from('deals')
+    .insert([{
+      deal_id: deal.id,
+      deal_data: JSON.stringify(deal),
+      cat: deal.cat,
+      merchant: deal.merchant,
+      created_at: new Date().toISOString()
+    }])
+    .then(function(result) {
+      if (result.error) console.log('Save error:', result.error);
+      else console.log('Deal saved to Supabase!');
+    });
+}
+
+
 const DEALS = [
   { id:1, cat:"viande", name:"Cote de Boeuf Angus", merchant:"Boucherie Fabre", origin:"VAR", discount:60, price:18.90, orig:47.20, weight:"1.2 kg", expiry:"Aujourd'hui 20h00", timer:"4h 23m", ai:"Persillage excellent - Couleur optimale - Fraicheur OK", badge:"BIM TERROIR", badgeColor:"#10B981", co2:1.4, bg:"https://images.unsplash.com/photo-1558030006-450675393462?w=600&q=80", photo:"https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=200&q=80", desc:"Race Angus elevee en plein air, alimentation 100% naturelle." },
   { id:2, cat:"cave", name:"Lot 12 Rose Provence", merchant:"Cave Cooperative", origin:"AOP", discount:45, price:54, orig:98, weight:"12 x 75cl", expiry:"Demain 18h00", timer:"22h 00m", ai:null, badge:"ENCHERE", badgeColor:"#F97316", co2:0.8, bg:"https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80", photo:"https://images.unsplash.com/photo-1474722883778-792e7990302f?w=200&q=80", desc:"Cuvee Tradition, recoltee a la main. Parfait pour l'ete." },
@@ -3210,7 +3298,10 @@ function publishDashOffer() {
   // Save to localStorage
   saveDealToStorage(newDeal);
 
-  // Notify all connected clients
+  // Save to Supabase (broadcasts to ALL devices)
+  saveDealToSupabase(newDeal);
+
+  // Notify local client
   notifyClientsAboutDeal(newDeal);
 
   const btn = document.getElementById('dash-publish-btn');
@@ -3336,8 +3427,9 @@ loadDealsFromStorage();
 renderDeal();
 loadClientSession();
 subscribeToNtfy();
-// Poll immediately for any missed notifications
 setTimeout(pollNtfyMainThread, 3000);
+// Connect to Supabase
+setTimeout(initSupabase, 500);
 // Splash screen
 setTimeout(function() {
   var splash = document.getElementById('splash-screen');
