@@ -788,57 +788,65 @@ function toggleProMic() {
 
 
 function parseProVoice(text) {
-  const t = text.toLowerCase()
-    .replace(/euros?/g, 'EUR')
-    .replace(/pour cent|pourcent/g, '%')
-    .replace(/le kilo|le kg|par kg/g, '/kg')
-    .replace(/virgule/g, '.');
+  // Normalize text
+  let t = text.toLowerCase()
+    .replace(/\beuro(s)?\b/g, 'EUR')
+    .replace(/\bpour cent\b|\bpourcent\b/g, 'POURCENT')
+    .replace(/\ble kilo\b|\ble kg\b|\bpar kilo\b|\bpar kg\b/g, 'PKG')
+    .replace(/\bkilos?\b/g, 'kg')
+    .replace(/\bvirgule\b/g, '.');
 
-  console.log('Parsing:', t);
+  console.log('Voice input normalized:', t);
 
-  // Product name: everything before first number or trigger word
-  let name = text;
-  const stopIdx = t.search(/\d|prix|bon|etat|a vendre|quantite|kg|kilo/);
-  if (stopIdx > 2) {
-    name = text.slice(0, stopIdx).trim().replace(/[,.\-]$/, '').trim();
+  // === PRODUCT NAME ===
+  // Everything before first number or trigger keyword
+  let name = '';
+  const nameStop = t.search(/\d|\bprix\b|\bbon\b|\betat\b|\ba vendre\b|\bkg\b|\blitre\b|\bpiece\b|\bunite\b|\bcarton\b|\bboite\b/);
+  if (nameStop > 1) {
+    name = text.slice(0, nameStop).trim().replace(/[,.\-\s]+$/, '');
+  } else {
+    // fallback: first 2 words
+    name = text.split(' ').slice(0,2).join(' ');
   }
   name = name.charAt(0).toUpperCase() + name.slice(1);
 
-  // Price: find number followed by EUR or /kg or le kilo
+  // === PRICE ===
+  // Patterns: "100 EUR", "prix 100", "100 euros", "100EUR/kg"
   let price = '';
   const pricePatterns = [
-    /(\d+(?:[.,]\d+)?)\s*EUR/i,
-    /prix\s+(?:de\s+base\s+)?(\d+(?:[.,]\d+)?)/i,
-    /(\d+(?:[.,]\d+)?)\s*(?:euros?|EUR)/i,
-    /(\d+(?:[.,]\d+)?)\s*(?:\/kg|le\s+kg|le\s+kilo)/i,
+    /(\d+(?:[.,]\d+)?)\s*EUR/,
+    /\bprix\b[^0-9]*(\d+(?:[.,]\d+)?)/,
+    /\bbase\b[^0-9]*(\d+(?:[.,]\d+)?)/,
   ];
   for (const pat of pricePatterns) {
     const m = t.match(pat);
     if (m) { price = m[1].replace(',', '.'); break; }
   }
 
-  // Discount
+  // === DISCOUNT ===
   let discount = '';
-  const discMatch = t.match(/(\d+)\s*%/);
+  const discMatch = t.match(/(\d+)\s*POURCENT/);
   if (discMatch) discount = discMatch[1];
 
-  // Quantity
+  // === QUANTITY ===
   let qty = '';
-  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g|litres?|pieces?|unites?|boites?|cartons?|ml|cl|kilo)/);
-  if (qtyMatch) qty = qtyMatch[1] + ' ' + qtyMatch[2].replace('kilo','kg');
+  const qtyMatch = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|g\b|litres?|pieces?|unites?|boites?|cartons?|ml|cl)/);
+  if (qtyMatch) qty = qtyMatch[1] + ' ' + qtyMatch[2];
 
-  // Category
-  const cat = detectCategory(text);
+  console.log('Parsed result:', {name, price, discount, qty});
 
-  console.log('Parsed:', {name, price, discount, qty, cat});
-
-  // Fill form
+  // Fill the form fields
   if (name) document.getElementById('result-name').value = name;
   if (price) document.getElementById('result-orig').value = price;
   if (discount) document.getElementById('result-discount').value = discount;
   if (qty) document.getElementById('result-qty').value = qty;
+
+  // Auto-detect category from name+full text
+  const cat = detectCategory(text);
   document.getElementById('result-cat').value = cat;
   updateCatBadge(cat);
+  // Highlight the right cat button
+  highlightCatBtn(cat);
   recalcFlash();
 }
 
@@ -967,6 +975,27 @@ function applyManual() {
   syncManual();
   document.getElementById('voice-check').style.display = 'inline';
   showToast('Informations appliquees!');
+}
+
+function setCat(btn, cat) {
+  document.getElementById('result-cat').value = cat;
+  updateCatBadge(cat);
+  highlightCatBtn(cat);
+}
+
+function highlightCatBtn(cat) {
+  document.querySelectorAll('.cat-pick-btn').forEach(function(b) {
+    b.style.opacity = '0.4';
+    b.style.transform = 'scale(1)';
+    b.style.boxShadow = 'none';
+  });
+  document.querySelectorAll('.cat-pick-btn').forEach(function(b) {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf("'" + cat + "'") !== -1) {
+      b.style.opacity = '1';
+      b.style.transform = 'scale(1.08)';
+      b.style.boxShadow = '0 0 0 2px #f97316';
+    }
+  });
 }
 
 function renderProOffers() {
