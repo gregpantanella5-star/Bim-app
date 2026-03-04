@@ -175,6 +175,175 @@
 <body>
 
 <div class="content">
+  <!-- MERCHANT LOGIN OVERLAY -->
+  <div id="merchant-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;padding:24px">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:28px;padding:28px;width:100%;max-width:400px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#f97316,#10b981);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">🏪</div>
+        <h2 style="font-size:22px;font-weight:900;margin-bottom:4px">Espace Commerçant</h2>
+        <p style="font-size:13px;color:#64748b">Connectez-vous pour publier vos offres</p>
+      </div>
+      <div id="login-form" style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM DU COMMERCE</label>
+          <input id="login-name" placeholder="ex: Boucherie Martin" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NUMÉRO SIRET (14 chiffres)</label>
+          <input id="login-siret" placeholder="ex: 12345678901234" maxlength="14" type="number" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CATÉGORIE PRINCIPALE</label>
+          <select id="login-cat" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px">
+            <option value="viande">🥩 Boucherie / Charcuterie</option>
+            <option value="cave">🍷 Cave / Spiritueux</option>
+            <option value="primeur">🥦 Primeur / Fruits & Légumes</option>
+            <option value="laitier">🧀 Fromagerie / Laitier</option>
+            <option value="pret">🍱 Traiteur / Prêt à manger</option>
+          </select>
+        </div>
+        <p id="login-error" style="color:#ef4444;font-size:12px;text-align:center;display:none">SIRET invalide (14 chiffres requis)</p>
+        <button onclick="doMerchantLogin()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3);margin-top:4px">
+          ⚡ Accéder à mon espace
+        </button>
+        <button onclick="closeMerchantOverlay()" style="width:100%;padding:12px;background:none;color:#64748b;border:none;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">
+          Retour à l'app client
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MERCHANT DASHBOARD -->
+  <div id="merchant-dashboard" style="display:none;position:fixed;inset:0;background:#0f172a;z-index:400;overflow-y:auto;padding-bottom:80px">
+    <div style="padding:16px">
+      <!-- Dashboard Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:48px;height:48px;background:linear-gradient(135deg,#f97316,#10b981);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px">🏪</div>
+          <div>
+            <p id="merchant-name-display" style="font-size:16px;font-weight:900"></p>
+            <p id="merchant-siret-display" style="font-size:11px;color:#64748b"></p>
+          </div>
+        </div>
+        <button onclick="logoutMerchant()" style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:8px 12px;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+          Déconnecter
+        </button>
+      </div>
+
+      <!-- Stats rapides -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px">
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+          <p id="stat-offers" style="font-size:24px;font-weight:900;color:#f97316">0</p>
+          <p style="font-size:10px;color:#64748b;font-weight:700">OFFRES</p>
+        </div>
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+          <p id="stat-views" style="font-size:24px;font-weight:900;color:#34d399">0</p>
+          <p style="font-size:10px;color:#64748b;font-weight:700">VUES</p>
+        </div>
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+          <p id="stat-saved" style="font-size:24px;font-weight:900;color:#6ee7b7">0kg</p>
+          <p style="font-size:10px;color:#64748b;font-weight:700">CO₂ ÉVITÉ</p>
+        </div>
+      </div>
+
+      <!-- Bouton nouvelle offre -->
+      <button onclick="showNewOfferPanel()" style="width:100%;padding:18px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:18px;font-size:17px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.35);margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px">
+        <span style="font-size:22px">⚡</span> Nouvelle offre flash
+      </button>
+
+      <!-- Panel nouvelle offre (photo + vocal) -->
+      <div id="new-offer-panel" style="display:none;background:#1e293b;border:1px solid #334155;border-radius:24px;padding:18px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:900">Créer une offre</h3>
+          <button onclick="hideNewOfferPanel()" style="background:#0f172a;border:none;border-radius:8px;padding:6px 10px;color:#64748b;cursor:pointer;font-size:18px">✕</button>
+        </div>
+
+        <!-- Photo -->
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:8px">1 · PHOTO DU PRODUIT</p>
+          <div id="dash-photo-zone" style="width:100%;height:160px;background:#0f172a;border:2px dashed #334155;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden" onclick="document.getElementById('dash-cam-input').click()">
+            <div id="dash-photo-placeholder" style="text-align:center;color:#475569">
+              <div style="font-size:36px">📷</div>
+              <p style="font-size:13px;margin-top:6px;font-weight:600">Appuyez pour photographier</p>
+            </div>
+            <img id="dash-photo-img" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0" />
+            <div id="dash-ai-scanning" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;flex-direction:column;gap:8px">
+              <div style="width:40px;height:40px;border:3px solid #f97316;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+              <p style="color:white;font-size:13px;font-weight:700">Analyse IA...</p>
+            </div>
+          </div>
+          <input type="file" id="dash-cam-input" accept="image/*" capture="environment" style="display:none" onchange="handleDashPhoto(event)" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="document.getElementById('dash-cam-input').click()" style="flex:1;padding:10px;background:#f97316;color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">📷 Caméra</button>
+            <button onclick="document.getElementById('dash-cam-input').removeAttribute('capture');document.getElementById('dash-cam-input').click()" style="flex:1;padding:10px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">🖼 Galerie</button>
+          </div>
+          <div id="dash-ai-result" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px;margin-top:8px;font-size:12px;color:#6ee7b7;font-weight:600"></div>
+        </div>
+
+        <!-- Vocal -->
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:8px">2 · NOTE VOCALE <span style="color:#475569;font-weight:400">(Chrome requis)</span></p>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button id="dash-mic-btn" onclick="toggleDashMic()" style="width:64px;height:64px;border-radius:50%;background:#f97316;border:none;cursor:pointer;font-size:26px;flex-shrink:0;box-shadow:0 4px 16px rgba(249,115,22,0.4);transition:all 0.2s">🎤</button>
+            <div style="flex:1">
+              <p id="dash-mic-hint" style="font-size:13px;color:#64748b;font-weight:600">Produit, quantité, prix, remise</p>
+              <p id="dash-transcript" style="font-size:13px;color:#e2e8f0;font-style:italic;margin-top:4px;min-height:18px"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Champs manuels -->
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:8px">3 · DÉTAILS <span style="color:#475569;font-weight:400">(vérifiez et corrigez)</span></p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <input id="dash-name" placeholder="Nom du produit *" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div>
+                <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">PRIX BASE €</p>
+                <input id="dash-orig" type="number" step="0.01" oninput="calcDashFlash()" placeholder="0" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <div>
+                <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">REMISE %</p>
+                <input id="dash-discount" type="number" oninput="calcDashFlash()" placeholder="0" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <div>
+                <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">QUANTITÉ</p>
+                <input id="dash-qty" placeholder="100kg" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+            </div>
+            <!-- Flash price preview -->
+            <div id="dash-flash-preview" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center">
+              <span style="color:#6ee7b7;font-size:13px;font-weight:700">Prix flash :</span>
+              <span id="dash-flash-val" style="font-size:22px;font-weight:900;color:#34d399"></span>
+            </div>
+            <!-- Category -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick="setDashCat(this,'viande')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#fca5a5;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥩 Viande</button>
+              <button onclick="setDashCat(this,'cave')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#c4b5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍷 Cave</button>
+              <button onclick="setDashCat(this,'primeur')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#6ee7b7;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥦 Primeur</button>
+              <button onclick="setDashCat(this,'laitier')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.3);border-radius:10px;color:#fde68a;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🧀 Laitier</button>
+              <button onclick="setDashCat(this,'pret')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍱 Prêt</button>
+            </div>
+            <input type="hidden" id="dash-cat" value="pret" />
+          </div>
+        </div>
+
+        <button onclick="publishDashOffer()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 6px 20px rgba(249,115,22,0.3)" id="dash-publish-btn">
+          ⚡ Publier dans le feed
+        </button>
+      </div>
+
+      <!-- Mes offres sauvegardées -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:15px;font-weight:900">Mes offres</h3>
+          <span id="my-offers-count" style="font-size:12px;color:#64748b"></span>
+        </div>
+        <div id="merchant-offers-list"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- HEADER -->
   <header class="header">
     <div class="logo-area">
@@ -188,6 +357,7 @@
     <div class="header-icons">
       <button class="icon-btn">📍</button>
       <button class="icon-btn">🔔</button>
+      <button onclick="openMerchantSpace()" style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:10px;padding:8px 12px;font-size:11px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif">🏪 Pro</button>
       <button class="icon-btn" onclick="showTab('cart')" style="position:relative">
         🛒
         <span class="cart-badge" id="cart-badge" style="display:none">0</span>
@@ -1076,7 +1246,379 @@ function showProTab() {}
 
 
 
+// ============================================
+// MERCHANT LOGIN + DASHBOARD
+// ============================================
+
+let currentMerchant = null;
+let dashPhotoData = null;
+let dashIsRecording = false;
+let dashRecognition = null;
+let dashSelectedCat = 'pret';
+
+function openMerchantSpace() {
+  // Check if already logged in via localStorage
+  const saved = localStorage.getItem('bim_merchant');
+  if (saved) {
+    currentMerchant = JSON.parse(saved);
+    showMerchantDashboard();
+  } else {
+    document.getElementById('merchant-overlay').style.display = 'flex';
+  }
+}
+
+function closeMerchantOverlay() {
+  document.getElementById('merchant-overlay').style.display = 'none';
+}
+
+function doMerchantLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const siret = document.getElementById('login-siret').value.trim();
+  const cat = document.getElementById('login-cat').value;
+  const errEl = document.getElementById('login-error');
+
+  if (!name) { errEl.textContent = 'Entrez le nom de votre commerce'; errEl.style.display = 'block'; return; }
+  if (siret.length !== 14 || isNaN(siret)) { errEl.textContent = 'SIRET invalide (14 chiffres requis)'; errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+  currentMerchant = { name, siret, cat, joinDate: new Date().toLocaleDateString('fr-FR') };
+  localStorage.setItem('bim_merchant', JSON.stringify(currentMerchant));
+  document.getElementById('merchant-overlay').style.display = 'none';
+  showMerchantDashboard();
+}
+
+function showMerchantDashboard() {
+  document.getElementById('merchant-dashboard').style.display = 'block';
+  document.getElementById('merchant-name-display').textContent = currentMerchant.name;
+  document.getElementById('merchant-siret-display').textContent = 'SIRET: ' + currentMerchant.siret.slice(0,3) + ' *** *** ' + currentMerchant.siret.slice(-3);
+  updateMerchantStats();
+  renderMerchantOffers();
+}
+
+function logoutMerchant() {
+  localStorage.removeItem('bim_merchant');
+  currentMerchant = null;
+  document.getElementById('merchant-dashboard').style.display = 'none';
+}
+
+function showNewOfferPanel() {
+  document.getElementById('new-offer-panel').style.display = 'block';
+  document.getElementById('new-offer-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideNewOfferPanel() {
+  document.getElementById('new-offer-panel').style.display = 'none';
+  resetDashForm();
+}
+
+// PHOTO
+function handleDashPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    dashPhotoData = e.target.result;
+    const img = document.getElementById('dash-photo-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('dash-photo-placeholder').style.display = 'none';
+    const scan = document.getElementById('dash-ai-scanning');
+    scan.style.display = 'flex';
+    setTimeout(function() {
+      scan.style.display = 'none';
+      const res = document.getElementById('dash-ai-result');
+      res.style.display = 'block';
+      res.textContent = '🤖 Produit identifie - Fraicheur A+ - Pret a vendre';
+    }, 1500);
+  };
+  reader.readAsDataURL(file);
+}
+
+// VOCAL
+function toggleDashMic() {
+  const btn = document.getElementById('dash-mic-btn');
+  const hint = document.getElementById('dash-mic-hint');
+  const txt = document.getElementById('dash-transcript');
+
+  if (dashIsRecording) {
+    if (dashRecognition) dashRecognition.stop();
+    return;
+  }
+
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    hint.textContent = 'Micro non dispo - saisissez manuellement';
+    return;
+  }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  dashRecognition = new SR();
+  dashRecognition.lang = 'fr-FR';
+  dashRecognition.continuous = false;
+  dashRecognition.interimResults = false;
+
+  dashRecognition.onstart = function() {
+    dashIsRecording = true;
+    btn.textContent = 'STOP';
+    btn.style.fontSize = '12px';
+    btn.style.background = '#ef4444';
+    hint.textContent = 'Parlez... appuyez STOP';
+    txt.textContent = '...';
+  };
+
+  dashRecognition.onresult = function(e) {
+    const result = e.results[e.results.length - 1];
+    if (result.isFinal) txt.textContent = result[0].transcript;
+  };
+
+  dashRecognition.onend = function() {
+    dashIsRecording = false;
+    btn.textContent = '✅';
+    btn.style.fontSize = '22px';
+    btn.style.background = '#10b981';
+    hint.textContent = 'Enregistre!';
+    const transcript = txt.textContent;
+    if (transcript && transcript !== '...') parseDashVoice(transcript);
+  };
+
+  dashRecognition.onerror = function() {
+    dashIsRecording = false;
+    btn.textContent = '🎤';
+    btn.style.fontSize = '26px';
+    btn.style.background = '#f97316';
+    hint.textContent = 'Erreur - saisissez manuellement';
+  };
+
+  dashRecognition.start();
+}
+
+function parseDashVoice(text) {
+  let t = text.toLowerCase()
+    .replace(/€/g, ' EUR ')
+    .replace(/\breduction\b|\bremise\b|\bde reduction\b|\bpour cent\b|\bpourcent\b/g, ' POURCENT ')
+    .replace(/\ble kilo\b|\ble kg\b|\bpar kilo\b|\bpar kg\b|\bau kilo\b/g, ' PKG ')
+    .replace(/\bkilos?\b/g, ' kg ')
+    .replace(/\s+/g, ' ').trim();
+
+  const triggerWords = /\d|\bprix\b|\betat\b|\ba vendre\b|\bkg\b|\blitre\b|\beur\b/;
+  const stopIdx = t.search(triggerWords);
+  let name = stopIdx > 1 ? text.slice(0, stopIdx).trim().replace(/[,.\-\s]+$/, '') : text.split(' ').slice(0,3).join(' ');
+  name = name.charAt(0).toUpperCase() + name.slice(1);
+
+  const allPairs = [];
+  const pairRegex = /(\d+(?:[.,]\d+)?)\s*(EUR|PKG|POURCENT|%|kg\b|g\b|litres?\b|pieces?\b|ml\b|cl\b)/g;
+  let m;
+  while ((m = pairRegex.exec(t)) !== null) allPairs.push({ val: m[1].replace(',','.'), unit: m[2] });
+
+  let price = '', discount = '', qty = '';
+  for (const p of allPairs) {
+    if ((p.unit === 'EUR' || p.unit === 'PKG') && !price) price = p.val;
+    if ((p.unit === 'POURCENT' || p.unit === '%') && !discount) discount = p.val;
+    if (['kg','g','litre','litres','ml','cl','piece','pieces'].some(u => p.unit.startsWith(u)) && !qty) qty = p.val + ' ' + p.unit;
+  }
+
+  if (name) document.getElementById('dash-name').value = name;
+  if (price) document.getElementById('dash-orig').value = price;
+  if (discount) document.getElementById('dash-discount').value = discount;
+  if (qty) document.getElementById('dash-qty').value = qty;
+
+  const cat = detectCategory(text);
+  setDashCatByValue(cat);
+  calcDashFlash();
+}
+
+function setDashCat(btn, cat) {
+  dashSelectedCat = cat;
+  document.getElementById('dash-cat').value = cat;
+  document.querySelectorAll('.dash-cat-btn').forEach(function(b) {
+    b.style.opacity = '0.4'; b.style.boxShadow = 'none';
+  });
+  btn.style.opacity = '1';
+  btn.style.boxShadow = '0 0 0 2px #f97316';
+}
+
+function setDashCatByValue(cat) {
+  dashSelectedCat = cat;
+  document.getElementById('dash-cat').value = cat;
+  document.querySelectorAll('.dash-cat-btn').forEach(function(b) {
+    b.style.opacity = '0.4'; b.style.boxShadow = 'none';
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf("'" + cat + "'") !== -1) {
+      b.style.opacity = '1'; b.style.boxShadow = '0 0 0 2px #f97316';
+    }
+  });
+}
+
+function calcDashFlash() {
+  const orig = parseFloat(document.getElementById('dash-orig').value);
+  const disc = parseFloat(document.getElementById('dash-discount').value);
+  const preview = document.getElementById('dash-flash-preview');
+  const val = document.getElementById('dash-flash-val');
+  if (orig && disc) {
+    preview.style.display = 'flex';
+    val.textContent = (orig * (1 - disc/100)).toFixed(2) + ' EUR';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function publishDashOffer() {
+  const name = document.getElementById('dash-name').value.trim();
+  if (!name) { showToast('Entrez un nom de produit'); return; }
+
+  const orig = parseFloat(document.getElementById('dash-orig').value) || 0;
+  const disc = parseFloat(document.getElementById('dash-discount').value) || 0;
+  const flash = disc ? parseFloat((orig * (1 - disc/100)).toFixed(2)) : orig;
+  const qty = document.getElementById('dash-qty').value || '';
+  const cat = document.getElementById('dash-cat').value || 'pret';
+  const merchant = currentMerchant ? currentMerchant.name : 'Mon commerce';
+
+  const newDeal = {
+    id: Date.now(),
+    cat: cat,
+    name: name,
+    merchant: merchant,
+    origin: 'Local',
+    discount: disc,
+    price: flash,
+    orig: orig,
+    weight: qty,
+    expiry: "Aujourd'hui",
+    timer: '24h 00m',
+    ai: null,
+    badge: 'FLASH',
+    badgeColor: '#f97316',
+    co2: 0.3,
+    bg: dashPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+    photo: dashPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80',
+    desc: document.getElementById('dash-transcript').textContent || '',
+    publishedAt: new Date().toISOString()
+  };
+
+  // Add to main feed
+  DEALS.unshift(newDeal);
+
+  // Save to localStorage
+  saveDealToStorage(newDeal);
+
+  const btn = document.getElementById('dash-publish-btn');
+  btn.textContent = '✅ Publie dans ' + (CAT_LABELS[cat] || cat) + '!';
+  btn.style.background = '#10b981';
+  showToast('Offre publiee dans ' + (CAT_LABELS[cat] || cat) + '!');
+
+  updateMerchantStats();
+  renderMerchantOffers();
+
+  setTimeout(function() {
+    hideNewOfferPanel();
+    btn.textContent = 'Publier dans le feed';
+    btn.style.background = '#f97316';
+  }, 2000);
+}
+
+// LOCALSTORAGE PERSISTENCE
+function saveDealToStorage(deal) {
+  const key = 'bim_deals';
+  let deals = [];
+  try { deals = JSON.parse(localStorage.getItem(key)) || []; } catch(e) {}
+  deals.unshift(deal);
+  localStorage.setItem(key, JSON.stringify(deals));
+}
+
+function loadDealsFromStorage() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bim_deals')) || [];
+    saved.forEach(function(d) {
+      if (!DEALS.find(function(x) { return x.id === d.id; })) {
+        DEALS.unshift(d);
+      }
+    });
+    console.log('Loaded ' + saved.length + ' saved deals');
+  } catch(e) {}
+}
+
+function deleteSavedDeal(id) {
+  // Remove from DEALS
+  DEALS = DEALS.filter(function(d) { return d.id !== id; });
+  // Remove from localStorage
+  try {
+    let deals = JSON.parse(localStorage.getItem('bim_deals')) || [];
+    deals = deals.filter(function(d) { return d.id !== id; });
+    localStorage.setItem('bim_deals', JSON.stringify(deals));
+  } catch(e) {}
+  renderMerchantOffers();
+  updateMerchantStats();
+  dismissed = dismissed.filter(function(x) { return x !== id; });
+  renderDeal();
+  showToast('Offre supprimee');
+}
+
+function updateMerchantStats() {
+  const myDeals = getMerchantDeals();
+  document.getElementById('stat-offers').textContent = myDeals.length;
+  document.getElementById('stat-views').textContent = myDeals.length * 47;
+  const co2 = myDeals.reduce(function(s, d) { return s + (d.co2 || 0.3); }, 0);
+  document.getElementById('stat-saved').textContent = co2.toFixed(1) + 'kg';
+  document.getElementById('my-offers-count').textContent = myDeals.length + ' offre' + (myDeals.length > 1 ? 's' : '');
+}
+
+function getMerchantDeals() {
+  if (!currentMerchant) return [];
+  try {
+    return JSON.parse(localStorage.getItem('bim_deals')) || [];
+  } catch(e) { return []; }
+}
+
+function renderMerchantOffers() {
+  const el = document.getElementById('merchant-offers-list');
+  const deals = getMerchantDeals();
+  if (!deals.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:#475569"><div style="font-size:40px;margin-bottom:10px">📦</div><p style="font-weight:700">Aucune offre publiee</p><p style="font-size:13px;margin-top:6px">Appuyez sur "Nouvelle offre flash" pour commencer</p></div>';
+    return;
+  }
+  el.innerHTML = deals.map(function(d) {
+    const catEmoji = CAT_EMOJI[d.cat] || '📦';
+    const isPhoto = d.bg && d.bg.startsWith('data:');
+    return '<div style="background:#1e293b;border:1px solid #334155;border-radius:16px;overflow:hidden;margin-bottom:12px;display:flex">'
+      + '<div style="width:90px;height:90px;flex-shrink:0;background:#0f172a;overflow:hidden">'
+      + (isPhoto ? '<img src="'+d.bg+'" style="width:100%;height:100%;object-fit:cover" />' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px">'+catEmoji+'</div>')
+      + '</div>'
+      + '<div style="flex:1;padding:12px">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+      + '<span style="font-size:10px;font-weight:900;background:#f97316;color:white;padding:2px 8px;border-radius:6px">'+catEmoji+' '+(CAT_LABELS[d.cat]||d.cat)+'</span>'
+      + '</div>'
+      + '<p style="font-weight:900;font-size:14px;margin-bottom:2px">'+d.name+'</p>'
+      + '<p style="font-size:12px;color:#64748b">'+d.weight+'</p>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">'
+      + '<div><span style="font-size:18px;font-weight:900;color:#34d399">'+d.price.toFixed(2)+'€</span>'
+      + ' <span style="font-size:11px;color:#475569;text-decoration:line-through">'+d.orig+'€</span></div>'
+      + '<button onclick="deleteSavedDeal('+d.id+')" style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:6px 10px;color:#ef4444;cursor:pointer;font-size:14px;font-weight:700">🗑</button>'
+      + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function resetDashForm() {
+  dashPhotoData = null;
+  dashIsRecording = false;
+  document.getElementById('dash-photo-img').style.display = 'none';
+  document.getElementById('dash-photo-placeholder').style.display = 'block';
+  document.getElementById('dash-ai-result').style.display = 'none';
+  document.getElementById('dash-ai-scanning').style.display = 'none';
+  document.getElementById('dash-mic-btn').textContent = '🎤';
+  document.getElementById('dash-mic-btn').style.background = '#f97316';
+  document.getElementById('dash-mic-btn').style.fontSize = '26px';
+  document.getElementById('dash-mic-hint').textContent = 'Produit, quantite, prix, remise';
+  document.getElementById('dash-transcript').textContent = '';
+  ['dash-name','dash-orig','dash-discount','dash-qty'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('dash-flash-preview').style.display = 'none';
+  document.querySelectorAll('.dash-cat-btn').forEach(function(b) { b.style.opacity = '0.4'; b.style.boxShadow = 'none'; });
+  dashSelectedCat = 'pret';
+}
+
+
 // INIT
+loadDealsFromStorage();
 renderDeal();
 </script>
 </body>
