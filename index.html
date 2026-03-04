@@ -2435,60 +2435,174 @@ function saveClientData() {
 // ── NOTIFICATIONS ────────────────────────────────────────────────────
 
 function toggleNotifications() {
-  if (!('Notification' in window)) {
-    showToast('Notifications non supportees sur ce navigateur');
+  if (!("Notification" in window)) {
+    showNtfyGuide();
     return;
   }
-  if (Notification.permission === 'granted' || notifEnabled) {
+  if (Notification.permission === "granted" || notifEnabled) {
     notifEnabled = false;
-    var btn = document.getElementById('notif-toggle-btn');
-    btn.textContent = 'Activer';
-    btn.style.background = '#f97316';
-    document.getElementById('notif-status-bar').style.display = 'none';
-    showToast('Notifications desactivees');
+    var btn = document.getElementById("notif-toggle-btn");
+    btn.textContent = "Activer";
+    btn.style.background = "#f97316";
+    document.getElementById("notif-status-bar").style.display = "none";
+    showToast("Notifications desactivees");
   } else {
     Notification.requestPermission().then(function(perm) {
-      if (perm === 'granted') {
+      if (perm === "granted") {
         notifEnabled = true;
-        var btn = document.getElementById('notif-toggle-btn');
-        btn.textContent = '✅ Active';
-        btn.style.background = '#10b981';
-        document.getElementById('notif-status-bar').style.display = 'flex';
-        showToast('✅ Notifications activees!');
-        // Send welcome notification
+        var btn = document.getElementById("notif-toggle-btn");
+        btn.textContent = "✅ Active";
+        btn.style.background = "#10b981";
+        document.getElementById("notif-status-bar").style.display = "flex";
+        showToast("✅ Notifications activees!");
         setTimeout(function() {
           sendBimNotif(
-            '🎉 BIM Notifications activées !',
-            'Vous recevrez les meilleures offres flash dans un rayon de ' + clientRadius + ' km',
-            'https://bim-app-nu.vercel.app'
+            "🎉 BIM Notifications activees !",
+            "Vous recevrez les meilleures offres flash dans un rayon de " + clientRadius + " km",
+            "https://bim-app-nu.vercel.app"
           );
         }, 1000);
-        // Start deal monitoring
-        startDealMonitor();
+      } else if (perm === "denied") {
+        showNotifBlockedHelp();
       } else {
-        showToast('Permission refusee — autorisez dans les reglages Chrome');
+        showNtfyGuide();
       }
     });
   }
 }
 
+function showNotifBlockedHelp() {
+  var modal = document.createElement("div");
+  modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:700;display:flex;align-items:flex-end;justify-content:center";
+  modal.innerHTML = [
+    "<div style='background:#0f172a;border-radius:28px 28px 0 0;padding:28px 20px 40px;width:100%;max-width:480px'>",
+      "<div style='width:40px;height:4px;background:#334155;border-radius:2px;margin:0 auto 20px'></div>",
+      "<div style='text-align:center;margin-bottom:20px'>",
+        "<div style='font-size:48px;margin-bottom:12px'>🔔</div>",
+        "<h2 style='font-size:20px;font-weight:900;margin-bottom:8px'>Activer les notifications</h2>",
+        "<p style='color:#64748b;font-size:13px;line-height:1.6'>Chrome a bloque les notifications.<br>Voici comment les autoriser :</p>",
+      "</div>",
+      "<div style='background:#1e293b;border-radius:16px;padding:16px;margin-bottom:16px'>",
+        "<div style='display:flex;align-items:flex-start;gap:12px;margin-bottom:14px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#f97316;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>1</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Appuie sur l icone <strong>🔒 cadenas</strong> dans la barre d adresse Chrome</p>",
+        "</div>",
+        "<div style='display:flex;align-items:flex-start;gap:12px;margin-bottom:14px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#f97316;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>2</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Appuie sur <strong>Autorisations du site</strong></p>",
+        "</div>",
+        "<div style='display:flex;align-items:flex-start;gap:12px;margin-bottom:14px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#f97316;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>3</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Mets <strong>Notifications</strong> sur <strong>Autoriser</strong></p>",
+        "</div>",
+        "<div style='display:flex;align-items:flex-start;gap:12px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>4</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Recharge la page et reessaie !</p>",
+        "</div>",
+      "</div>",
+      "<button id='close-notif-help' style='width:100%;padding:14px;background:#f97316;color:white;border:none;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;font-family:Montserrat,sans-serif'>Compris !</button>",
+    "</div>"
+  ].join("");
+  document.body.appendChild(modal);
+  document.getElementById("close-notif-help").addEventListener("click", function() { modal.remove(); });
+}
+
+function showNtfyGuide() {
+  var modal = document.createElement("div");
+  modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:700;display:flex;align-items:flex-end;justify-content:center";
+  modal.innerHTML = [
+    "<div style='background:#0f172a;border-radius:28px 28px 0 0;padding:28px 20px 40px;width:100%;max-width:480px'>",
+      "<div style='width:40px;height:4px;background:#334155;border-radius:2px;margin:0 auto 20px'></div>",
+      "<div style='text-align:center;margin-bottom:20px'>",
+        "<div style='font-size:48px;margin-bottom:12px'>📲</div>",
+        "<h2 style='font-size:20px;font-weight:900;margin-bottom:8px'>Notifications sur iPhone</h2>",
+        "<p style='color:#64748b;font-size:13px;line-height:1.6'>Safari bloque les push web.<br>Installe l app pour recevoir les alertes :</p>",
+      "</div>",
+      "<div style='background:#1e293b;border-radius:16px;padding:16px;margin-bottom:16px'>",
+        "<div style='display:flex;align-items:flex-start;gap:12px;margin-bottom:14px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#f97316;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>1</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Ouvre bim-app-nu.vercel.app dans <strong>Safari</strong></p>",
+        "</div>",
+        "<div style='display:flex;align-items:flex-start;gap:12px;margin-bottom:14px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#f97316;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>2</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Appuie sur <strong>Partager ↑</strong> en bas de Safari</p>",
+        "</div>",
+        "<div style='display:flex;align-items:flex-start;gap:12px;margin-bottom:14px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#f97316;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>3</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Choisis <strong>Sur l ecran d accueil</strong></p>",
+        "</div>",
+        "<div style='display:flex;align-items:flex-start;gap:12px'>",
+          "<div style='width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0'>4</div>",
+          "<p style='font-size:13px;color:#e2e8f0;margin:4px 0 0;line-height:1.5'>Ouvre l app depuis l ecran d accueil → Notifications disponibles !</p>",
+        "</div>",
+      "</div>",
+      "<button id='close-ntfy-guide' style='width:100%;padding:14px;background:#f97316;color:white;border:none;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;font-family:Montserrat,sans-serif'>Compris !</button>",
+    "</div>"
+  ].join("");
+  document.body.appendChild(modal);
+  document.getElementById("close-ntfy-guide").addEventListener("click", function() { modal.remove(); });
+}
+
+
+// Register Service Worker for push notifications
+if ('serviceWorker' in navigator) {
+  var swCode = [
+    "self.addEventListener('push', function(e) {",
+    "  var data = e.data ? e.data.json() : {};",
+    "  self.registration.showNotification(data.title || 'BIM Flash', {",
+    "    body: data.body || 'Nouvelle offre disponible !',",
+    "    icon: '/favicon.ico',",
+    "    badge: '/favicon.ico',",
+    "    tag: 'bim-deal',",
+    "    requireInteraction: true,",
+    "    data: { url: data.url || 'https://bim-app-nu.vercel.app' }",
+    "  });",
+    "});",
+    "self.addEventListener('notificationclick', function(e) {",
+    "  e.notification.close();",
+    "  e.waitUntil(clients.openWindow(e.notification.data.url));",
+    "});",
+    "self.addEventListener('message', function(e) {",
+    "  if (e.data && e.data.type === 'SHOW_NOTIF') {",
+    "    self.registration.showNotification(e.data.title, {",
+    "      body: e.data.body,",
+    "      icon: '/favicon.ico',",
+    "      tag: 'bim-deal-' + Date.now(),",
+    "      requireInteraction: false",
+    "    });",
+    "  }",
+    "});"
+  ].join("\n");
+
+  var swBlob = new Blob([swCode], { type: "application/javascript" });
+  var swUrl = URL.createObjectURL(swBlob);
+
+  navigator.serviceWorker.register(swUrl, { scope: "/" }).then(function(reg) {
+    console.log("SW registered:", reg.scope);
+    window._swReg = reg;
+  }).catch(function(e) {
+    console.log("SW error:", e);
+  });
+}
+
 function sendBimNotif(title, body, url) {
-  if (Notification.permission !== 'granted') return;
+  // Try via Service Worker first (works when app is in background)
+  if (window._swReg && window._swReg.active) {
+    window._swReg.active.postMessage({ type: "SHOW_NOTIF", title: title, body: body });
+    return;
+  }
+  // Fallback: direct Notification API
+  if (Notification.permission !== "granted") return;
   try {
     var n = new Notification(title, {
       body: body,
-      icon: 'https://bim-app-nu.vercel.app/favicon.ico',
-      badge: 'https://bim-app-nu.vercel.app/favicon.ico',
-      tag: 'bim-deal-' + Date.now(),
-      requireInteraction: false,
-      silent: false
+      icon: "/favicon.ico",
+      tag: "bim-deal-" + Date.now()
     });
-    n.onclick = function() {
-      window.focus();
-      if (url) window.location.href = url;
-    };
-  } catch(e) { console.log('Notif error:', e); }
+    n.onclick = function() { window.focus(); };
+  } catch(e) { console.log("Notif error:", e); }
 }
+
 
 function startDealMonitor() {
   // Simulate new deal notifications every 30-90 seconds for demo
