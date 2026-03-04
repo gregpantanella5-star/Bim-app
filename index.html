@@ -788,7 +788,6 @@ function toggleProMic() {
 
 
 function parseProVoice(text) {
-  // Normalize - Chrome uses € symbol and "réduction" not "pourcent"
   let t = text.toLowerCase()
     .replace(/€/g, ' EUR ')
     .replace(/\breduction\b|\bremise\b|\bde reduction\b|\bpour cent\b|\bpourcent\b/g, ' POURCENT ')
@@ -800,8 +799,7 @@ function parseProVoice(text) {
   console.log('Normalized:', t);
 
   // === PRODUCT NAME ===
-  // Stop at first digit or trigger word
-  const triggerWords = /\d|\bprix\b|\bbon\b|\betat\b|\ba vendre\b|\bkg\b|\bkilo\b|\blitre\b|\bpiece\b|\bunite\b|\bcarton\b|\bboite\b|\beur\b/;
+  const triggerWords = /\d|\bprix\b|\betat\b|\ba vendre\b|\bkg\b|\blitre\b|\bpiece\b|\bunite\b|\bcarton\b|\bboite\b|\beur\b/;
   const stopIdx = t.search(triggerWords);
   let name = '';
   if (stopIdx > 1) {
@@ -811,55 +809,52 @@ function parseProVoice(text) {
   }
   name = name.charAt(0).toUpperCase() + name.slice(1);
 
-  // === PRICE ===
-  // Handles: "100 EUR", "100€", "prix 100", "100 EUR le kilo", "100 EUR PKG"
+  // === FIND ALL number+unit pairs first ===
+  // Pattern: number followed by a unit
+  const allPairs = [];
+  const pairRegex = /(\d+(?:[.,]\d+)?)\s*(EUR|PKG|POURCENT|%|kg\b|g\b|litres?\b|pieces?\b|unites?\b|boites?\b|cartons?\b|ml\b|cl\b)/g;
+  let m;
+  while ((m = pairRegex.exec(t)) !== null) {
+    allPairs.push({ val: m[1].replace(',','.'), unit: m[2], pos: m.index });
+  }
+  console.log('All pairs:', allPairs);
+
+  // === PRICE: number before EUR or PKG ===
   let price = '';
-  const pricePatterns = [
-    /(\d+(?:[.,]\d+)?)\s*EUR/,
-    /\bprix\b\D{0,10}(\d+(?:[.,]\d+)?)/,
-    /\bbase\b\D{0,10}(\d+(?:[.,]\d+)?)/,
-  ];
-  for (const pat of pricePatterns) {
-    const m = t.match(pat);
-    if (m) { price = m[1].replace(',', '.'); break; }
+  for (const p of allPairs) {
+    if (p.unit === 'EUR' || p.unit === 'PKG') { price = p.val; break; }
+  }
+  // Fallback: look for "prix X" pattern
+  if (!price) {
+    const pm = t.match(/\bprix\b\D{0,5}(\d+(?:[.,]\d+)?)/);
+    if (pm) price = pm[1];
   }
 
-  // === DISCOUNT ===
-  // Handles: "50 POURCENT", "50%", "50 % de reduction"
+  // === DISCOUNT: number before POURCENT or % ===
   let discount = '';
-  const discPatterns = [
-    /(\d+)\s*POURCENT/,
-    /(\d+)\s*%/,
-  ];
-  for (const pat of discPatterns) {
-    const m = t.match(pat);
-    if (m) { discount = m[1]; break; }
+  for (const p of allPairs) {
+    if (p.unit === 'POURCENT' || p.unit === '%') { discount = p.val; break; }
   }
 
-  // === QUANTITY ===
-  // Handles: "50 kg", "100 litres", etc.
-  // Be careful not to grab the price number
+  // === QUANTITY: number before kg/litre/etc, different from price ===
   let qty = '';
-  // Find all number+unit pairs
-  const qtyRegex = /(\d+(?:[.,]\d+)?)\s*(kg\b|g\b|litres?\b|pieces?\b|unites?\b|boites?\b|cartons?\b|ml\b|cl\b)/g;
-  let qtyMatch;
-  while ((qtyMatch = qtyRegex.exec(t)) !== null) {
-    // Skip if this number was used for price
-    if (!price || qtyMatch[1] !== price) {
-      qty = qtyMatch[1] + ' ' + qtyMatch[2].replace(/s$/, '');
+  const qtyUnits = ['kg', 'g', 'litre', 'litres', 'piece', 'pieces', 'unite', 'unites', 'boite', 'boites', 'carton', 'cartons', 'ml', 'cl'];
+  for (const p of allPairs) {
+    const unitClean = p.unit.replace(/s$/, '');
+    if (qtyUnits.some(u => p.unit.startsWith(u))) {
+      // Use this as qty even if same number as price - qty unit wins
+      qty = p.val + ' ' + unitClean;
       break;
     }
   }
 
   console.log('Result:', { name, price, discount, qty });
 
-  // Fill form
   if (name) document.getElementById('result-name').value = name;
   if (price) document.getElementById('result-orig').value = price;
   if (discount) document.getElementById('result-discount').value = discount;
   if (qty) document.getElementById('result-qty').value = qty;
 
-  // Category from original text
   const cat = detectCategory(text);
   document.getElementById('result-cat').value = cat;
   updateCatBadge(cat);
