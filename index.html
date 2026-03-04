@@ -842,13 +842,31 @@ function filterCat(cat, btn) {
 }
 
 function showTab(tab) {
-  ['feed','live','bimride','merchant','b2b','cart'].forEach(t => {
-    document.getElementById('view-'+t).style.display = 'none';
-    document.getElementById('nav-'+t).classList.remove('active');
+  // Merchant tab opens dashboard overlay, not a view
+  if (tab === 'merchant') {
+    openMerchantSpace();
+    return;
+  }
+  ['feed','live','bimride','b2b','cart'].forEach(function(t) {
+    const v = document.getElementById('view-'+t);
+    const n = document.getElementById('nav-'+t);
+    if (v) v.style.display = 'none';
+    if (n) n.classList.remove('active');
   });
-  document.getElementById('view-'+tab).style.display = 'block';
-  document.getElementById('nav-'+tab).classList.add('active');
-  if (tab === 'cart') renderCart();
+  const navMerchant = document.getElementById('nav-merchant');
+  if (navMerchant) navMerchant.classList.remove('active');
+  const viewEl = document.getElementById('view-'+tab);
+  if (viewEl) viewEl.style.display = 'block';
+  const navEl = document.getElementById('nav-'+tab);
+  if (navEl) navEl.classList.add('active');
+  updateCartBadge();
+  if (tab === 'bimride') {
+    setTimeout(function() { initRideMap(); renderRunnersList(); }, 150);
+  } else {
+    if (typeof mapAnimFrame !== 'undefined' && mapAnimFrame) {
+      cancelAnimationFrame(mapAnimFrame); mapAnimFrame = null;
+    }
+  }
 }
 
 function renderCart() {
@@ -921,7 +939,7 @@ function detectCategory(text) {
   const cats = {
     viande: ['boeuf','veau','agneau','porc','poulet','dinde','canard','lapin','gibier','steak','cote','filet','roti','saucisse','jambon','charcuterie','volaille','viande','boucherie'],
     cave: ['vin','rouge','blanc','rose','champagne','prosecco','biere','cidre','alcool','spiritueux','whisky','rhum','vodka','cave','bouteille','litre','cl','magnum'],
-    primeur: ['tomate','salade','laitue','carotte','courgette','aubergine','poivron','concombre','brocoli','epinard','haricot','petit pois','champignon','oignon','ail','pomme de terre','patate','mangue','banane','orange','citron','pomme','poire','fraise','framboise','melon','pastèque','ananas','kiwi','raisin','abricot','peche','cerise','fruit','legume','primeur','maraicher'],
+    primeur: ['tomate','salade','laitue','carotte','courgette','aubergine','poivron','concombre','brocoli','epinard','haricot','petit pois','champignon','oignon','ail','pomme de terre','patate','mangue','banane','orange','citron','pomme','poire','fraise','framboise','melon','pasteque','ananas','kiwi','raisin','abricot','peche','cerise','fruit','legume','primeur','maraicher'],
     laitier: ['fromage','beurre','creme','yaourt','lait','feta','mozzarella','camembert','brie','comte','emmental','gruyere','parmesan','laitier','fromagerie'],
     pret: ['sushi','pizza','plat','sandwich','salade composee','repas','cuisine','traiteur','pret','box','bento','wrap','burger']
   };
@@ -1312,11 +1330,11 @@ const RUNNERS = [
     lat:0.45, lng:0.48, route:'Fayence → Callian', eta:'12 min', etaMin:12,
     rating:'4.9', reviews:127, courses:312, co2:'48kg',
     status:'En route', delivering:true,
-    bio:'Runner depuis 2 ans, je connais tous les chemins de Fayence. Livraison soignée garantie!',
+    bio:'Runner depuis 2 ans, je connais tous les chemins de Fayence. Livraison soignee garantie!',
     lastReviews:[
-      {name:'Pierre M.', note:5, text:'Super rapide et très sympa!'},
+      {name:'Pierre M.', note:5, text:'Super rapide et tres sympa!'},
       {name:'Claire B.', note:5, text:'Impeccable, je recommande!'},
-      {name:'Ahmed K.', note:4, text:'Très professionnel, merci Marie.'}
+      {name:'Ahmed K.', note:4, text:'Tres professionnel, merci Marie.'}
     ]
   },
   {
@@ -1325,7 +1343,7 @@ const RUNNERS = [
     lat:0.65, lng:0.70, route:'Montauroux → Fayence', eta:'8 min', etaMin:8,
     rating:'4.7', reviews:89, courses:198, co2:'31kg',
     status:'Disponible', delivering:false,
-    bio:'Retraité actif, je livre avec plaisir. Ponctuel et discret.',
+    bio:"Retraite actif, je livre avec plaisir. Ponctuel et discret.",
     lastReviews:[
       {name:'Sophie L.', note:5, text:'Parfait comme toujours!'},
       {name:'Marc D.', note:4, text:'Bonne livraison, merci.'}
@@ -1337,11 +1355,11 @@ const RUNNERS = [
     lat:0.28, lng:0.72, route:'Fayence → Seillans', eta:'15 min', etaMin:15,
     rating:'5.0', reviews:203, courses:445, co2:'67kg',
     status:'En route', delivering:true,
-    bio:'Passionnée de vélo et d\'écologie. Livraisons 100% propres sur Fayence et alentours.',
+    bio:"Passionnee de velo et d ecologie. Livraisons 100% propres sur Fayence et alentours.",
     lastReviews:[
       {name:'Julie F.', note:5, text:'Sophie est la meilleure runner!'},
-      {name:'Luc T.', note:5, text:'Toujours à l\'heure, toujours souriante.'},
-      {name:'Emma R.', note:5, text:'Produits parfaitement conservés.'}
+      {name:'Luc T.', note:5, text:'Toujours a l\'heure, toujours souriante.'},
+      {name:'Emma R.', note:5, text:'Produits parfaitement conserves.'}
     ]
   },
   {
@@ -1352,7 +1370,7 @@ const RUNNERS = [
     status:'Disponible', delivering:false,
     bio:'Toujours disponible le matin et le week-end. Livraisons rapides garanties.',
     lastReviews:[
-      {name:'Nadia S.', note:5, text:'Très rapide, produits frais à l\'arrivée.'},
+      {name:'Nadia S.', note:5, text:'Tres rapide, produits frais a l\'arrivee.'},
       {name:'Robert M.', note:5, text:'Super Karim, encore merci!'}
     ]
   },
@@ -1364,7 +1382,7 @@ const RUNNERS = [
     status:'En route', delivering:true,
     bio:'Jeune runner dynamique, je livre vite et bien. Disponible tous les jours.',
     lastReviews:[
-      {name:'Paul V.', note:5, text:'Très agréable et ponctuelle!'},
+      {name:'Paul V.', note:5, text:'Tres agreable et ponctuelle!'},
       {name:'Isabelle D.', note:4, text:'Bonne livraison merci Laura.'}
     ]
   }
@@ -1683,7 +1701,7 @@ function startTracking(runner) {
     document.getElementById('tracking-pct').textContent = Math.round(trackingProgress) + '%';
 
     remaining = Math.max(0, Math.round((totalSeconds - elapsed) / 60));
-    document.getElementById('tracking-eta').textContent = remaining === 0 ? 'Arrivé!' : remaining + ' min';
+    document.getElementById('tracking-eta').textContent = remaining === 0 ? 'Arrive!' : remaining + ' min';
 
     // Step 2 active
     if (trackingProgress > 20) {
@@ -1694,7 +1712,7 @@ function startTracking(runner) {
     if (trackingProgress >= 100) {
       document.getElementById('step3-dot').style.background = '#10b981';
       document.getElementById('step3-label').style.color = '#10b981';
-      document.getElementById('tracking-eta').textContent = 'Livré! 🎉';
+      document.getElementById('tracking-eta').textContent = 'Livre! 🎉';
       clearInterval(trackingInterval);
       showToast('Livraison effectuee par ' + runner.name + '!');
     }
@@ -1860,15 +1878,7 @@ function selectRunnerFromList(id) {
 
 function becomeRunner() { showToast('Inscription BIM-Runner - bientot disponible!'); }
 
-const origShowTab = showTab;
-showTab = function(tab) {
-  origShowTab(tab);
-  if (tab === 'bimride') {
-    setTimeout(function() { initRideMap(); renderRunnersList(); }, 150);
-  } else {
-    if (mapAnimFrame) { cancelAnimationFrame(mapAnimFrame); mapAnimFrame = null; }
-  }
-};
+// BIM-Ride map init is handled inside showTab
 
 
 
