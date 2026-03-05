@@ -192,6 +192,97 @@
 </head>
 <body>
 
+<!-- ============================================ -->
+<!-- ONBOARDING — Première ouverture              -->
+<!-- ============================================ -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d1b2e;flex-direction:column;align-items:center;justify-content:space-between;padding:0">
+
+  <!-- Slides container -->
+  <div id="ob-slides" style="width:100%;flex:1;position:relative;overflow:hidden">
+
+    <!-- Slide 0 — Logo splash -->
+    <div class="ob-slide" id="ob-slide-0" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;opacity:1;transition:opacity 0.5s">
+      <div style="width:120px;height:120px;background:linear-gradient(135deg,#f97316,#22c55e);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 0 60px rgba(249,115,22,0.4)">
+        <span style="font-size:52px;font-weight:900;color:white;font-family:Montserrat,sans-serif">B</span>
+      </div>
+      <h1 style="font-size:42px;font-weight:900;color:white;margin:0;font-family:Montserrat,sans-serif;letter-spacing:-1px">BIM</h1>
+      <p style="font-size:13px;color:#f97316;font-weight:700;letter-spacing:3px;margin:6px 0 20px;font-family:Montserrat,sans-serif">LE CERCLE VERTUEUX ALIMENTAIRE</p>
+      <p style="font-size:16px;color:#94a3b8;line-height:1.6;font-family:Montserrat,sans-serif">Bienvenue sur la première app qui connecte commerçants et clients autour des produits frais</p>
+    </div>
+
+    <!-- Slide 1 — Pour les clients -->
+    <div class="ob-slide" id="ob-slide-1" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;opacity:0;pointer-events:none;transition:opacity 0.5s">
+      <div style="font-size:80px;margin-bottom:24px">⚡</div>
+      <h2 style="font-size:28px;font-weight:900;color:white;margin:0 0 16px;font-family:Montserrat,sans-serif">Offres Flash</h2>
+      <p style="font-size:16px;color:#94a3b8;line-height:1.7;font-family:Montserrat,sans-serif">Recevez en temps réel les meilleures offres des commerçants de votre quartier — jusqu'à <span style="color:#f97316;font-weight:700">-70%</span> sur les produits frais</p>
+      <div style="display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;justify-content:center">
+        <div style="background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);border-radius:12px;padding:10px 16px;color:#fb923c;font-size:13px;font-weight:700;font-family:Montserrat,sans-serif">🥩 Viande</div>
+        <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:10px 16px;color:#4ade80;font-size:13px;font-weight:700;font-family:Montserrat,sans-serif">🥦 Primeur</div>
+        <div style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:10px 16px;color:#c4b5fd;font-size:13px;font-weight:700;font-family:Montserrat,sans-serif">🍷 Cave</div>
+        <div style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);border-radius:12px;padding:10px 16px;color:#67e8f9;font-size:13px;font-weight:700;font-family:Montserrat,sans-serif">🐟 Poisson</div>
+      </div>
+    </div>
+
+    <!-- Slide 2 — Pour les commerçants -->
+    <div class="ob-slide" id="ob-slide-2" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;opacity:0;pointer-events:none;transition:opacity 0.5s">
+      <div style="font-size:80px;margin-bottom:24px">🏪</div>
+      <h2 style="font-size:28px;font-weight:900;color:white;margin:0 0 16px;font-family:Montserrat,sans-serif">Vous êtes commerçant ?</h2>
+      <p style="font-size:16px;color:#94a3b8;line-height:1.7;font-family:Montserrat,sans-serif">Publiez vos offres flash en <span style="color:#f97316;font-weight:700">30 secondes</span>, touchez vos clients instantanément et réduisez vos invendus</p>
+      <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:16px;padding:20px;margin-top:28px;width:100%">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span style="font-size:24px">📸</span>
+          <span style="color:#e2e8f0;font-size:14px;font-weight:600;font-family:Montserrat,sans-serif">Photo + IA analyse votre produit</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span style="font-size:24px">🔔</span>
+          <span style="color:#e2e8f0;font-size:14px;font-weight:600;font-family:Montserrat,sans-serif">Notification instantanée à vos clients</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:24px">📊</span>
+          <span style="color:#e2e8f0;font-size:14px;font-weight:600;font-family:Montserrat,sans-serif">Suivez vos ventes en temps réel</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3 — Notifications -->
+    <div class="ob-slide" id="ob-slide-3" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;opacity:0;pointer-events:none;transition:opacity 0.5s">
+      <div style="font-size:80px;margin-bottom:24px">🔔</div>
+      <h2 style="font-size:28px;font-weight:900;color:white;margin:0 0 16px;font-family:Montserrat,sans-serif">Ne ratez rien !</h2>
+      <p style="font-size:16px;color:#94a3b8;line-height:1.7;font-family:Montserrat,sans-serif">Activez les notifications pour recevoir les meilleures offres en temps réel, même quand l'app est fermée</p>
+      <button onclick="requestNotifAndFinish()" style="margin-top:32px;width:100%;padding:18px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:16px;font-size:17px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 30px rgba(249,115,22,0.4)">
+        🔔 Activer les notifications
+      </button>
+      <button onclick="finishOnboarding()" style="margin-top:12px;width:100%;padding:14px;background:transparent;color:#64748b;border:none;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">
+        Passer pour l'instant
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Bottom navigation -->
+  <div style="width:100%;padding:24px 30px 40px;display:flex;flex-direction:column;align-items:center;gap:16px">
+
+    <!-- Dots indicator -->
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="ob-dot" id="ob-dot-0" style="width:24px;height:8px;background:#f97316;border-radius:4px;transition:all 0.3s"></div>
+      <div class="ob-dot" id="ob-dot-1" style="width:8px;height:8px;background:#334155;border-radius:4px;transition:all 0.3s"></div>
+      <div class="ob-dot" id="ob-dot-2" style="width:8px;height:8px;background:#334155;border-radius:4px;transition:all 0.3s"></div>
+      <div class="ob-dot" id="ob-dot-3" style="width:8px;height:8px;background:#334155;border-radius:4px;transition:all 0.3s"></div>
+    </div>
+
+    <!-- Next / Start button -->
+    <button id="ob-next-btn" onclick="obNext()" style="width:100%;padding:18px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:16px;font-size:17px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 30px rgba(249,115,22,0.4)">
+      Commencer →
+    </button>
+
+    <!-- Skip -->
+    <button onclick="finishOnboarding()" style="background:transparent;color:#475569;border:none;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">
+      Passer l'introduction
+    </button>
+
+  </div>
+</div>
+
 <div class="content">
   <!-- MERCHANT LOGIN OVERLAY -->
   <div id="merchant-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;padding:24px">
@@ -3264,7 +3355,85 @@ function calcDashFlash() {
   }
 }
 
-function publishDashOffer() {
+
+// ============================================
+// UPLOAD PHOTO → SUPABASE STORAGE
+// ============================================
+async function uploadPhotoToSupabase(base64Data) {
+  if (!supabaseClient || !base64Data) return null;
+  try {
+    // Convert base64 to blob
+    var parts = base64Data.split(',');
+    var mime = parts[0].match(/:(.*?);/)[1];
+    var binary = atob(parts[1]);
+    var arr = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+    var blob = new Blob([arr], { type: mime });
+
+    // Resize if too large (max 800px)
+    var resized = await resizeImage(blob, 800);
+
+    // Upload to Supabase Storage
+    var filename = 'deals/' + Date.now() + '.jpg';
+    var result = await supabaseClient.storage
+      .from('bim-photos')
+      .upload(filename, resized, { contentType: 'image/jpeg', upsert: true });
+
+    if (result.error) {
+      console.log('Upload error:', result.error);
+      return null;
+    }
+
+    // Get public URL
+    var urlResult = supabaseClient.storage
+      .from('bim-photos')
+      .getPublicUrl(filename);
+
+    return urlResult.data.publicUrl;
+  } catch(e) {
+    console.log('Photo upload error:', e);
+    return null;
+  }
+}
+
+// Resize image before upload
+function resizeImage(blob, maxSize) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    var url = URL.createObjectURL(blob);
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        var ratio = Math.min(maxSize/w, maxSize/h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(function(b) { resolve(b); }, 'image/jpeg', 0.85);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
+async function publishDashOffer() {
+  // Show uploading state
+  var publishBtn = document.querySelector('[onclick="publishDashOffer()"]');
+  if (publishBtn) { publishBtn.textContent = '⏳ Publication...'; publishBtn.disabled = true; }
+
+  // Upload photo to Supabase Storage if available
+  var photoUrl = null;
+  if (dashPhotoData && supabaseClient) {
+    showToast('📸 Upload photo...');
+    photoUrl = await uploadPhotoToSupabase(dashPhotoData);
+    if (photoUrl) showToast('✅ Photo uploadée !');
+  }
+  var finalPhoto = photoUrl || dashPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80';
+
+  if (publishBtn) { publishBtn.textContent = '🚀 Publier'; publishBtn.disabled = false; }
+
   const name = document.getElementById('dash-name').value.trim();
   if (!name) { showToast('Entrez un nom de produit'); return; }
 
@@ -3291,8 +3460,8 @@ function publishDashOffer() {
     badge: 'FLASH',
     badgeColor: '#f97316',
     co2: 0.3,
-    bg: dashPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
-    photo: dashPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80',
+    bg: finalPhoto,
+    photo: photoUrl || dashPhotoData || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80',
     desc: document.getElementById('dash-transcript').textContent || '',
     publishedAt: new Date().toISOString()
   };
@@ -3428,6 +3597,106 @@ function resetDashForm() {
 
 
 // INIT
+
+// ============================================
+// ONBOARDING
+// ============================================
+var obCurrentSlide = 0;
+var OB_TOTAL = 4;
+
+function initOnboarding() {
+  var done = localStorage.getItem('bim_onboarding_done');
+  if (!done) {
+    var overlay = document.getElementById('onboarding-overlay');
+    overlay.style.display = 'flex';
+    obGoTo(0);
+  }
+}
+
+function obNext() {
+  if (obCurrentSlide < OB_TOTAL - 1) {
+    obGoTo(obCurrentSlide + 1);
+  } else {
+    finishOnboarding();
+  }
+}
+
+function obGoTo(n) {
+  // Hide current
+  var cur = document.getElementById('ob-slide-' + obCurrentSlide);
+  if (cur) { cur.style.opacity = '0'; cur.style.pointerEvents = 'none'; }
+
+  obCurrentSlide = n;
+
+  // Show new
+  var next = document.getElementById('ob-slide-' + n);
+  if (next) { next.style.opacity = '1'; next.style.pointerEvents = 'auto'; }
+
+  // Update dots
+  for (var i = 0; i < OB_TOTAL; i++) {
+    var dot = document.getElementById('ob-dot-' + i);
+    if (dot) {
+      dot.style.width = i === n ? '24px' : '8px';
+      dot.style.background = i === n ? '#f97316' : '#334155';
+    }
+  }
+
+  // Update button text
+  var btn = document.getElementById('ob-next-btn');
+  if (btn) {
+    if (n === OB_TOTAL - 1) {
+      btn.style.display = 'none'; // Last slide has its own buttons
+    } else if (n === 0) {
+      btn.style.display = 'block';
+      btn.textContent = 'Commencer →';
+    } else {
+      btn.style.display = 'block';
+      btn.textContent = 'Suivant →';
+    }
+  }
+}
+
+function requestNotifAndFinish() {
+  if ('Notification' in window) {
+    Notification.requestPermission().then(function(perm) {
+      if (perm === 'granted') {
+        showToast('🔔 Notifications activées !');
+        subscribeToNtfy();
+      }
+      finishOnboarding();
+    });
+  } else {
+    finishOnboarding();
+  }
+}
+
+function finishOnboarding() {
+  localStorage.setItem('bim_onboarding_done', '1');
+  var overlay = document.getElementById('onboarding-overlay');
+  overlay.style.opacity = '0';
+  overlay.style.transition = 'opacity 0.5s';
+  setTimeout(function() { overlay.style.display = 'none'; }, 500);
+}
+
+// Add swipe support for onboarding
+(function() {
+  var startX = 0;
+  document.addEventListener('touchstart', function(e) {
+    var overlay = document.getElementById('onboarding-overlay');
+    if (overlay && overlay.style.display !== 'none') startX = e.touches[0].clientX;
+  });
+  document.addEventListener('touchend', function(e) {
+    var overlay = document.getElementById('onboarding-overlay');
+    if (!overlay || overlay.style.display === 'none') return;
+    var diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && obCurrentSlide < OB_TOTAL - 1) obNext();
+      else if (diff < 0 && obCurrentSlide > 0) obGoTo(obCurrentSlide - 1);
+    }
+  });
+})();
+
+
 loadDealsFromStorage();
 renderDeal();
 loadClientSession();
@@ -3435,6 +3704,8 @@ subscribeToNtfy();
 setTimeout(pollNtfyMainThread, 3000);
 // Connect to Supabase
 setTimeout(initSupabase, 500);
+// Onboarding
+initOnboarding();
 // Splash screen
 setTimeout(function() {
   var splash = document.getElementById('splash-screen');
