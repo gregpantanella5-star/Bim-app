@@ -1,0 +1,193 @@
+// ============================================
+// BIM App — Supabase Client
+// ============================================
+
+let supabaseClient = null;
+let realtimeChannel = null;
+
+function initSupabase() {
+  try {
+    if (typeof supabase === 'undefined') {
+      console.warn('Supabase JS library not loaded');
+      return;
+    }
+    supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    console.log('✅ Supabase connected');
+    setupRealtimeDeals();
+    if (!CONFIG.DEMO_MODE) {
+      loadDealsFromDB();
+    }
+  } catch(e) {
+    console.error('Supabase init error:', e);
+  }
+}
+
+// ---- AUTH ----
+
+async function signUp(email, password, metadata) {
+  if (!supabaseClient) return { error: 'Supabase non connecté' };
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: { data: metadata }
+  });
+  return { data, error };
+}
+
+async function signIn(email, password) {
+  if (!supabaseClient) return { error: 'Supabase non connecté' };
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  return { data, error };
+}
+
+async function signOut() {
+  if (!supabaseClient) return;
+  await supabaseClient.auth.signOut();
+}
+
+async function getCurrentUser() {
+  if (!supabaseClient) return null;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  return user;
+}
+
+function onAuthChange(callback) {
+  if (!supabaseClient) return;
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    callback(event, session);
+  });
+}
+
+// ---- DEALS ----
+
+async function loadDealsFromDB() {
+  if (!supabaseClient) return [];
+  const { data, error } = await supabaseClient
+    .from('deals')
+    .select(`
+      *,
+      merchants ( name, photo_url, city )
+    `)
+    .eq('is_active', true)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) { console.error('Load deals error:', error); return []; }
+  return (data || []).map(formatDealFromDB);
+}
+
+function formatDealFromDB(row) {
+  return {
+    id: row.id,
+    cat: row.category,
+    name: row.name,
+    merchant: row.merchants?.name || '',
+    origin: row.origin || 'Local',
+    discount: row.discount_percent,
+    price: parseFloat(row.flash_price),
+    orig: parseFloat(row.original_price),
+    weight: row.quantity || '',
+    expiry: formatExpiry(row.expires_at),
+    timer: formatTimer(row.expires_at),
+    ai: row.ai_analysis,
+    badge: row.badge || 'FLASH',
+    badgeColor: row.badge_color || '#F97316',
+    co2: parseFloat(row.co2_saved) || 0.3,
+    bg: row.photo_url || '',
+    photo: row.merchants?.photo_url || '',
+    desc: row.description || '',
+  };
+}
+
+async function saveDealToDB(dealData) {
+  if (!supabaseClient) return { error: 'Supabase non connecté' };
+  const { data, error } = await supabaseClient
+    .from('deals')
+    .insert([dealData])
+    .select()
+    .single();
+  return { data, error };
+}
+
+async function uploadPhoto(file, bucket = 'product-photos') {
+  if (!supabaseClient) return { error: 'Supabase non connecté' };
+  const fileName = `${Date.now()}_${file.name}`;
+  const { data, error } = await supabaseClient.storage
+    .from(bucket)
+    .upload(fileName, file, { contentType: file.type });
+  if (error) return { error };
+  const { data: { publicUrl } } = supabaseClient.storage
+    .from(bucket)
+    .getPublicUrl(fileName);
+  return { url: publicUrl };
+}
+
+// ---- ORDERS ----
+
+async function createOrder(orderData) {
+  if (!supabaseClient) return { error: 'Supabase non connecté' };
+  const { data, error } = await supabaseClient
+    .from('orders')
+    .insert([orderData])
+    .select()
+    .single();
+  return { data, error };
+}
+
+async function getMyOrders(userId) {
+  if (!supabaseClient) return [];
+  const { data, error } = await supabaseClient
+    .from('orders')
+    .select('*, order_items(*)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('Orders error:', error); return []; }
+  return data || [];
+}
+
+// ---- REALTIME ----
+
+function setupRealtimeDeals() {
+  if (!supabaseClient) return;
+  realtimeChannel = supabaseClient
+    .channel('deals-live')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'deals'
+    }, (payload) => {
+      console.log('🔔 New deal received!', payload);
+      const deal = formatDealFromDB(payload.new);
+      if (!DEALS.find(d => d.id === deal.id)) {
+        DEALS.unshift(deal);
+        renderDeal();
+        showToast('⚡ Nouvelle offre : ' + deal.name);
+      }
+    })
+    .subscribe((status) => {
+      console.log('Realtime status:', status);
+    });
+}
+
+// ---- HELPERS ----
+
+function formatExpiry(isoDate) {
+  const d = new Date(isoDate);
+  const now = new Date();
+  const diffH = Math.round((d - now) / 3600000);
+  if (diffH < 0) return 'Expiré';
+  if (diffH < 24) return "Aujourd'hui " + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  if (diffH < 48) return 'Demain ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return 'Dans ' + Math.ceil(diffH / 24) + ' jours';
+}
+
+function formatTimer(isoDate) {
+  const d = new Date(isoDate);
+  const now = new Date();
+  const diffMs = d - now;
+  if (diffMs <= 0) return '0m';
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  return h > 0 ? h + 'h ' + (m < 10 ? '0' : '') + m + 'm' : m + 'm';
+}

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BIM - Le Cercle Vertueux Alimentaire</title>
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="Offres flash anti-gaspi de vos commerçants locaux" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+
+<div class="content">
+  <!-- MERCHANT LOGIN OVERLAY -->
+  <div id="merchant-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;padding:24px">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:28px;padding:28px;width:100%;max-width:400px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#f97316,#10b981);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">🏪</div>
+        <h2 style="font-size:22px;font-weight:900;margin-bottom:4px">Espace Commerçant</h2>
+        <p style="font-size:13px;color:#64748b">Connectez-vous pour publier vos offres</p>
+      </div>
+      <!-- PANEL: Choisir inscription ou connexion -->
+      <div id="login-choice" style="display:flex;flex-direction:column;gap:10px">
+        <button onclick="showPanel('register')" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">
+          🏪 Créer mon compte commerçant
+        </button>
+        <button onclick="showPanel('signin')" style="width:100%;padding:16px;background:#1e293b;color:white;border:1px solid #334155;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+          🔑 Me connecter
+        </button>
+        <button onclick="closeMerchantOverlay()" style="width:100%;padding:12px;background:none;color:#64748b;border:none;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">
+          Retour à l'app client
+        </button>
+      </div>
+
+      <!-- PANEL: Inscription -->
+      <div id="register-form" style="display:none;flex-direction:column;gap:12px">
+        <button onclick="showPanel('choice')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;text-align:left;padding:0;font-family:Montserrat,sans-serif">← Retour</button>
+        <p style="font-size:13px;font-weight:700;color:#94a3b8;text-align:center;margin-bottom:4px">Nouvelle inscription</p>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM DU COMMERCE</label>
+          <input id="reg-name" placeholder="ex: Boucherie Martin" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NUMÉRO SIRET (14 chiffres)</label>
+          <input id="reg-siret" placeholder="ex: 12345678901234" maxlength="14" type="tel" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CATÉGORIE PRINCIPALE</label>
+          <select id="reg-cat" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px">
+            <option value="viande">🥩 Boucherie / Charcuterie</option>
+            <option value="cave">🍷 Cave / Spiritueux</option>
+            <option value="primeur">🥦 Primeur / Fruits & Légumes</option>
+            <option value="laitier">🧀 Fromagerie / Laitier</option>
+            <option value="pret">🍱 Traiteur / Prêt à manger</option>
+            <option value="poisson">🐟 Poisson / Fruits de mer</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CRÉER UN CODE PIN (4 chiffres)</label>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <input class="pin-input" id="reg-pin-1" maxlength="1" type="tel" oninput="pinNext(this,'reg-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="reg-pin-2" maxlength="1" type="tel" oninput="pinNext(this,'reg-pin-3')" onkeydown="pinBack(event,this,'reg-pin-1')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="reg-pin-3" maxlength="1" type="tel" oninput="pinNext(this,'reg-pin-4')" onkeydown="pinBack(event,this,'reg-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="reg-pin-4" maxlength="1" type="tel" onkeydown="pinBack(event,this,'reg-pin-3')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+          </div>
+        </div>
+        <p id="reg-error" style="color:#ef4444;font-size:12px;text-align:center;display:none"></p>
+        <button onclick="doRegister()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">
+          ✅ Créer mon compte
+        </button>
+      </div>
+
+      <!-- PANEL: Connexion -->
+      <div id="signin-form" style="display:none;flex-direction:column;gap:12px">
+        <button onclick="showPanel('choice')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;text-align:left;padding:0;font-family:Montserrat,sans-serif">← Retour</button>
+        <p style="font-size:13px;font-weight:700;color:#94a3b8;text-align:center;margin-bottom:4px">Connexion</p>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NUMÉRO SIRET</label>
+          <input id="si-siret" placeholder="14 chiffres" maxlength="14" type="tel" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">CODE PIN</label>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <input class="pin-input" id="si-pin-1" maxlength="1" type="tel" oninput="pinNext(this,'si-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="si-pin-2" maxlength="1" type="tel" oninput="pinNext(this,'si-pin-3')" onkeydown="pinBack(event,this,'si-pin-1')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="si-pin-3" maxlength="1" type="tel" oninput="pinNext(this,'si-pin-4')" onkeydown="pinBack(event,this,'si-pin-2')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+            <input class="pin-input" id="si-pin-4" maxlength="1" type="tel" onkeydown="pinBack(event,this,'si-pin-3')" style="width:56px;height:56px;background:#0f172a;border:1px solid #334155;border-radius:12px;text-align:center;color:white;font-size:24px;font-weight:900;font-family:Montserrat,sans-serif" />
+          </div>
+        </div>
+        <p id="si-error" style="color:#ef4444;font-size:12px;text-align:center;display:none"></p>
+        <button onclick="doSignIn()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3)">
+          🔑 Se connecter
+        </button>
+        <button onclick="closeMerchantOverlay()" style="width:100%;padding:12px;background:none;color:#64748b;border:none;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">
+          Retour à l'app client
+        </button>
+      </div>
+
+      <p id="login-error" style="display:none"></p>
+    </div>
+  </div>
+
+  <!-- MERCHANT DASHBOARD -->
+  <div id="merchant-dashboard" style="display:none;position:fixed;inset:0;background:#0f172a;z-index:400;overflow-y:auto;padding-bottom:80px">
+    <div style="padding:16px">
+      <!-- Dashboard Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:48px;height:48px;background:linear-gradient(135deg,#f97316,#10b981);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px">🏪</div>
+          <div>
+            <p id="merchant-name-display" style="font-size:16px;font-weight:900"></p>
+            <p id="merchant-siret-display" style="font-size:11px;color:#64748b"></p>
+          </div>
+        </div>
+        <button onclick="logoutMerchant()" style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:8px 12px;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+          Déconnecter
+        </button>
+      </div>
+
+      <!-- Stats rapides -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px">
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+          <p id="stat-offers" style="font-size:24px;font-weight:900;color:#f97316">0</p>
+          <p style="font-size:10px;color:#64748b;font-weight:700">OFFRES</p>
+        </div>
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+          <p id="stat-views" style="font-size:24px;font-weight:900;color:#34d399">0</p>
+          <p style="font-size:10px;color:#64748b;font-weight:700">VUES</p>
+        </div>
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+          <p id="stat-saved" style="font-size:24px;font-weight:900;color:#6ee7b7">0kg</p>
+          <p style="font-size:10px;color:#64748b;font-weight:700">CO₂ ÉVITÉ</p>
+        </div>
+      </div>
+
+      <!-- Bouton nouvelle offre -->
+      <button onclick="showNewOfferPanel()" style="width:100%;padding:18px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:18px;font-size:17px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.35);margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px">
+        <span style="font-size:22px">⚡</span> Nouvelle offre flash
+      </button>
+
+      <!-- Panel nouvelle offre (photo + vocal) -->
+      <div id="new-offer-panel" style="display:none;background:#1e293b;border:1px solid #334155;border-radius:24px;padding:18px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:900">Créer une offre</h3>
+          <button onclick="hideNewOfferPanel()" style="background:#0f172a;border:none;border-radius:8px;padding:6px 10px;color:#64748b;cursor:pointer;font-size:18px">✕</button>
+        </div>
+
+        <!-- Photo -->
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:8px">1 · PHOTO DU PRODUIT</p>
+          <div id="dash-photo-zone" style="width:100%;height:160px;background:#0f172a;border:2px dashed #334155;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden" onclick="document.getElementById('dash-cam-input').click()">
+            <div id="dash-photo-placeholder" style="text-align:center;color:#475569">
+              <div style="font-size:36px">📷</div>
+              <p style="font-size:13px;margin-top:6px;font-weight:600">Appuyez pour photographier</p>
+            </div>
+            <img id="dash-photo-img" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0" />
+            <div id="dash-ai-scanning" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;flex-direction:column;gap:8px">
+              <div style="width:40px;height:40px;border:3px solid #f97316;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+              <p style="color:white;font-size:13px;font-weight:700">Analyse IA...</p>
+            </div>
+          </div>
+          <input type="file" id="dash-cam-input" accept="image/*" capture="environment" style="display:none" onchange="handleDashPhoto(event)" />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="document.getElementById('dash-cam-input').click()" style="flex:1;padding:10px;background:#f97316;color:white;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">📷 Caméra</button>
+            <button onclick="document.getElementById('dash-cam-input').removeAttribute('capture');document.getElementById('dash-cam-input').click()" style="flex:1;padding:10px;background:#0f172a;color:#94a3b8;border:1px solid #334155;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:Montserrat,sans-serif">🖼 Galerie</button>
+          </div>
+          <div id="dash-ai-result" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px;margin-top:8px;font-size:12px;color:#6ee7b7;font-weight:600"></div>
+        </div>
+
+        <!-- Vocal -->
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:8px">2 · NOTE VOCALE <span style="color:#475569;font-weight:400">(Chrome requis)</span></p>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button id="dash-mic-btn" onclick="toggleDashMic()" style="width:64px;height:64px;border-radius:50%;background:#f97316;border:none;cursor:pointer;font-size:26px;flex-shrink:0;box-shadow:0 4px 16px rgba(249,115,22,0.4);transition:all 0.2s">🎤</button>
+            <div style="flex:1">
+              <p id="dash-mic-hint" style="font-size:13px;color:#64748b;font-weight:600">Produit, quantité, prix, remise</p>
+              <p id="dash-transcript" style="font-size:13px;color:#e2e8f0;font-style:italic;margin-top:4px;min-height:18px"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Champs manuels -->
+        <div style="margin-bottom:14px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:8px">3 · DÉTAILS <span style="color:#475569;font-weight:400">(vérifiez et corrigez)</span></p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <input id="dash-name" placeholder="Nom du produit *" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div>
+                <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">PRIX BASE €</p>
+                <input id="dash-orig" type="number" step="0.01" oninput="calcDashFlash()" placeholder="0" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <div>
+                <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">REMISE %</p>
+                <input id="dash-discount" type="number" oninput="calcDashFlash()" placeholder="0" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+              <div>
+                <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">QUANTITÉ</p>
+                <input id="dash-qty" placeholder="100kg" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;color:white;font-family:Montserrat,sans-serif;font-size:14px" />
+              </div>
+            </div>
+            <!-- Flash price preview -->
+            <div id="dash-flash-preview" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center">
+              <span style="color:#6ee7b7;font-size:13px;font-weight:700">Prix flash :</span>
+              <span id="dash-flash-val" style="font-size:22px;font-weight:900;color:#34d399"></span>
+            </div>
+            <!-- Category -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick="setDashCat(this,'viande')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#fca5a5;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥩 Viande</button>
+              <button onclick="setDashCat(this,'cave')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:10px;color:#c4b5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍷 Cave</button>
+              <button onclick="setDashCat(this,'primeur')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#6ee7b7;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥦 Primeur</button>
+              <button onclick="setDashCat(this,'laitier')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.3);border-radius:10px;color:#fde68a;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🧀 Laitier</button>
+              <button onclick="setDashCat(this,'pret')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#93c5fd;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍱 Prêt</button>
+              <button onclick="setDashCat(this,'poisson')" class="dash-cat-btn" style="padding:8px 12px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);border-radius:10px;color:#67e8f9;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🐟 Poisson</button>
+            </div>
+            <input type="hidden" id="dash-cat" value="pret" />
+          </div>
+        </div>
+
+        <button onclick="publishDashOffer()" style="width:100%;padding:16px;background:#f97316;color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 6px 20px rgba(249,115,22,0.3)" id="dash-publish-btn">
+          ⚡ Publier dans le feed
+        </button>
+      </div>
+
+      <!-- Mes offres sauvegardées -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:15px;font-weight:900">Mes offres</h3>
+          <span id="my-offers-count" style="font-size:12px;color:#64748b"></span>
+        </div>
+        <div id="merchant-offers-list"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash-screen" style="position:fixed;inset:0;background:linear-gradient(160deg,#0f172a 0%,#1a2744 50%,#0f2318 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;transition:opacity 0.6s ease">
+    <!-- Animated rings -->
+    <div style="position:absolute;width:280px;height:280px;border-radius:50%;border:2px solid rgba(249,115,22,0.15);animation:splashRing 2s ease-out infinite"></div>
+    <div style="position:absolute;width:340px;height:340px;border-radius:50%;border:1px solid rgba(16,185,129,0.1);animation:splashRing 2s ease-out 0.4s infinite"></div>
+
+    <!-- Logo -->
+    <div style="position:relative;animation:splashLogo 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;transform:scale(0.5)">
+      <img src="logo.png" style="width:200px;height:200px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(249,115,22,0.4))" />
+    </div>
+
+    <!-- Slogan -->
+    <div style="text-align:center;margin-top:24px;animation:splashFade 0.8s ease 0.6s forwards;opacity:0">
+      <p style="font-size:13px;color:#64748b;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Le cercle vertueux alimentaire</p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px">
+        <div style="width:6px;height:6px;border-radius:50%;background:#f97316;animation:dot 1.2s ease 1s infinite"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:#10b981;animation:dot 1.2s ease 1.2s infinite"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:#f97316;animation:dot 1.2s ease 1.4s infinite"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes splashLogo {
+      to { opacity:1; transform:scale(1); }
+    }
+    @keyframes splashFade {
+      to { opacity:1; }
+    }
+    @keyframes splashRing {
+      0% { transform:scale(0.8); opacity:0.6; }
+      100% { transform:scale(1.4); opacity:0; }
+    }
+    @keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(0);    opacity: 1; }
+    to   { transform: translateY(-20px); opacity: 0; }
+  }
+  @keyframes dot {
+      0%,100% { transform:scale(1); opacity:0.5; }
+      50% { transform:scale(1.5); opacity:1; }
+    }
+  </style>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-area" onclick="showTab('feed')" style="cursor:pointer">
+      <img src="logo.png" style="width:52px;height:52px;object-fit:contain;flex-shrink:0" alt="BIM" />
+      <div class="logo-text">
+        <h1>BIM</h1>
+        <p>LE CERCLE VERTUEUX ALIMENTAIRE</p>
+      </div>
+    </div>
+    <div class="header-icons">
+      <button class="icon-btn">📍</button>
+      <button class="icon-btn">🔔</button>
+      <button onclick="openMerchantSpace()" style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:10px;padding:8px 12px;font-size:11px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif">🏪 Pro</button>
+      <button onclick="showTab('cart')" style="position:relative;background:rgba(30,41,59,0.8);border:1px solid #334155;border-radius:12px;cursor:pointer;padding:8px 12px;color:white;font-size:22px;display:flex;align-items:center;gap:6px">
+        🛒
+        <span class="cart-badge" id="cart-badge" style="display:none;background:#f97316;color:white;border-radius:999px;font-size:11px;font-weight:900;padding:2px 6px;min-width:18px;text-align:center">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- VIEWS -->
+  <div id="view-feed">
+    <!-- CATEGORIES -->
+    <div class="tabs" style="overflow-x:auto;scrollbar-width:none">
+      <button class="tab active" onclick="filterCat('all',this)"><div class="tab-circle">⚡</div><span>Tout</span></button>
+      <button class="tab" onclick="filterCat('viande',this)"><div class="tab-circle">🥩</div><span>Viande</span></button>
+      <button class="tab" onclick="filterCat('poisson',this)"><div class="tab-circle">🐟</div><span>Poisson</span></button>
+      <button class="tab" onclick="filterCat('cave',this)"><div class="tab-circle">🍷</div><span>Cave</span></button>
+      <button class="tab" onclick="filterCat('primeur',this)"><div class="tab-circle">🥦</div><span>Primeur</span></button>
+      <button class="tab" onclick="filterCat('laitier',this)"><div class="tab-circle">🧀</div><span>Laitier</span></button>
+      <button class="tab" onclick="filterCat('pret',this)"><div class="tab-circle">🍱</div><span>Prêt</span></button>
+    </div>
+
+    <!-- DEAL CARD -->
+    <div id="deal-container"></div>
+    <div class="swipe-hints"><span>← Passer</span><span>→ Ajouter au panier</span></div>
+    <div class="actions">
+      <button class="btn-pass" onclick="nextDeal()">✕ Passer</button>
+      <button class="btn-add" onclick="addCurrentToCart()">🛒 Ajouter</button>
+    </div>
+  </div>
+
+  <div id="view-live" style="display:none">
+    <div class="live-view">
+      <div class="live-header">
+        <div class="live-dot"></div>
+        <span class="live-label">LIVE</span>
+        <span style="font-size:12px;color:#64748b;margin-left:auto">2 enchères en cours</span>
+      </div>
+      <div class="lot-card">
+        <div class="lot-top">
+          <div><div class="lot-label">🔥 Lot en enchère</div><div class="lot-name">Lot 48 cartons Rosé</div></div>
+          <span style="font-size:11px;font-weight:700;background:rgba(239,68,68,0.2);color:#f87171;padding:4px 10px;border-radius:999px">⏱ 20m 00s</span>
+        </div>
+        <div class="lot-bid-row">
+          <div><div class="lot-count" id="bids1">14 mises</div><div class="lot-price" id="price1">180€</div></div>
+          <button class="btn-bid" onclick="bid('price1','bids1')">📈 Miser +5€</button>
+        </div>
+      </div>
+      <div class="lot-card">
+        <div class="lot-top">
+          <div><div class="lot-label">🔥 Lot en enchère</div><div class="lot-name">Lot 200kg Tomates</div></div>
+          <span style="font-size:11px;font-weight:700;background:rgba(239,68,68,0.2);color:#f87171;padding:4px 10px;border-radius:999px">⏱ 1h 00m</span>
+        </div>
+        <div class="lot-bid-row">
+          <div><div class="lot-count" id="bids2">6 mises</div><div class="lot-price" id="price2">95€</div></div>
+          <button class="btn-bid" onclick="bid('price2','bids2')">📈 Miser +5€</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-bimride" style="display:none">
+    <!-- HEADER -->
+    <div style="padding:12px 16px 0;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="font-size:18px;font-weight:900">BIM-Ride 🚗</h2>
+        <p style="font-size:11px;color:#64748b">Livraison par vos voisins · Zéro émission</p>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="setRideView('map')" id="ride-btn-map" style="padding:8px 14px;background:#f97316;color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🗺 Carte</button>
+        <button onclick="setRideView('list')" id="ride-btn-list" style="padding:8px 14px;background:#1e293b;color:#94a3b8;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">📋 Liste</button>
+      </div>
+    </div>
+
+    <!-- BADGE -->
+    <div style="margin:10px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;animation:pulse 1s infinite"></span>
+        <span style="font-size:13px;font-weight:700;color:#6ee7b7">5 BIM-Runners actifs</span>
+      </div>
+      <span style="font-size:11px;color:#34d399;font-weight:700">📍 Fayence</span>
+    </div>
+
+    <!-- MAP VIEW -->
+    <div id="ride-map-view">
+      <div style="position:relative;width:100%;height:400px">
+        <div id="leaflet-map" style="width:100%;height:400px;z-index:1"></div>
+        <!-- Invisible canvas just for click detection - Leaflet handles the map -->
+        <canvas id="bimride-map" style="position:absolute;inset:0;width:100%;height:400px;pointer-events:none;opacity:0"></canvas>
+      </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="ride-list-view" style="display:none;padding:0 16px 80px">
+      <div id="runners-list" style="margin-top:8px"></div>
+      <div style="margin-top:16px;background:#1e293b;border:1px solid #334155;border-radius:20px;padding:20px;text-align:center">
+        <p style="font-size:14px;font-weight:700;margin-bottom:8px">Vous souhaitez livrer ?</p>
+        <p style="font-size:12px;color:#64748b;margin-bottom:16px">Devenez BIM-Runner et gagnez de l'argent</p>
+        <button onclick="becomeRunner()" style="padding:14px 28px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">🏅 Devenir BIM-Runner</button>
+      </div>
+    </div>
+
+    <!-- RUNNER PROFILE SHEET -->
+    <div id="runner-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeRunnerSheet()">
+      <div style="background:#0f172a;border-radius:28px 28px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
+        <!-- Handle -->
+        <div style="width:40px;height:4px;background:#334155;border-radius:2px;margin:0 auto 20px"></div>
+
+        <!-- Profile header -->
+        <div style="display:flex;gap:16px;margin-bottom:20px;align-items:center">
+          <div style="position:relative;flex-shrink:0">
+            <img id="sheet-photo" style="width:80px;height:80px;border-radius:20px;object-fit:cover;border:3px solid #f97316" src="" />
+            <div id="sheet-status-dot" style="position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#34d399;border:2px solid #0f172a"></div>
+          </div>
+          <div style="flex:1">
+            <h3 id="sheet-name" style="font-size:20px;font-weight:900;margin-bottom:4px"></h3>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:4px">
+                <span style="font-size:16px">⭐</span>
+                <span id="sheet-rating" style="font-size:16px;font-weight:900;color:#fcd34d"></span>
+                <span id="sheet-reviews" style="font-size:12px;color:#64748b"></span>
+              </div>
+              <span id="sheet-status-badge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px">
+          <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+            <p id="sheet-courses" style="font-size:22px;font-weight:900;color:#f97316"></p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-top:2px">COURSES</p>
+          </div>
+          <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+            <p id="sheet-co2" style="font-size:22px;font-weight:900;color:#34d399"></p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-top:2px">CO₂ ÉVITÉ</p>
+          </div>
+          <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;text-align:center">
+            <p id="sheet-eta-big" style="font-size:22px;font-weight:900;color:#6366f1"></p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-top:2px">ARRIVÉE</p>
+          </div>
+        </div>
+
+        <!-- Route -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+          <div style="flex:1">
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin-bottom:4px">TRAJET EN COURS</p>
+            <p id="sheet-route" style="font-size:14px;font-weight:700;color:white"></p>
+          </div>
+          <div style="font-size:28px">🚗</div>
+        </div>
+
+        <!-- Last reviews -->
+        <div style="margin-bottom:20px">
+          <p style="font-size:11px;color:#64748b;font-weight:700;margin-bottom:10px">DERNIERS AVIS</p>
+          <div id="sheet-reviews-list"></div>
+        </div>
+
+        <!-- Bio -->
+        <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:14px;padding:14px;margin-bottom:20px">
+          <p id="sheet-bio" style="font-size:13px;color:#fed7aa;line-height:1.5;font-style:italic"></p>
+        </div>
+
+        <!-- Action button -->
+        <button onclick="confirmRunner()" style="width:100%;padding:18px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:16px;font-size:17px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.35)">
+          🚗 Choisir ce Runner
+        </button>
+      </div>
+    </div>
+
+    <!-- TRACKING VIEW (Uber-style) -->
+    <div id="tracking-view" style="display:none;position:fixed;inset:0;z-index:400;background:#0f172a;flex-direction:column">
+      <!-- Map tracking -->
+      <div style="flex:1;position:relative">
+        <div style="position:relative;width:100%;height:320px">
+          <div id="leaflet-tracking" style="width:100%;height:320px;z-index:1"></div>
+          <canvas id="tracking-map" style="position:absolute;inset:0;width:100%;height:320px;pointer-events:none"></canvas>
+        </div>
+        <!-- ETA floating badge -->
+        <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);border:1px solid #334155;border-radius:16px;padding:10px 20px;text-align:center;backdrop-filter:blur(10px)">
+          <p style="font-size:11px;color:#64748b;font-weight:700">ARRIVÉE ESTIMÉE</p>
+          <p id="tracking-eta" style="font-size:24px;font-weight:900;color:#f97316"></p>
+        </div>
+      </div>
+
+      <!-- Runner info panel -->
+      <div style="background:#1e293b;border-radius:28px 28px 0 0;padding:20px;margin-top:-20px;position:relative;z-index:1">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <img id="tracking-photo" style="width:56px;height:56px;border-radius:16px;object-fit:cover;border:2px solid #f97316" src="" />
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px">
+              <p id="tracking-name" style="font-size:16px;font-weight:900"></p>
+              <span style="font-size:11px;color:#34d399;font-weight:700;background:rgba(16,185,129,0.15);padding:2px 8px;border-radius:999px">EN ROUTE</span>
+            </div>
+            <p id="tracking-route" style="font-size:12px;color:#64748b;margin-top:2px"></p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-size:22px;font-weight:900" id="tracking-rating-display">⭐ <span id="tracking-rating"></span></p>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:11px;color:#64748b;font-weight:700">Progression</span>
+            <span id="tracking-pct" style="font-size:11px;color:#f97316;font-weight:700"></span>
+          </div>
+          <div style="height:6px;background:#334155;border-radius:3px;overflow:hidden">
+            <div id="tracking-bar" style="height:100%;background:linear-gradient(to right,#f97316,#fbbf24);border-radius:3px;transition:width 1s ease;width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Status steps -->
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+          <div id="step-1" style="text-align:center;flex:1">
+            <div style="width:32px;height:32px;border-radius:50%;background:#f97316;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:14px">✅</div>
+            <p style="font-size:10px;color:#f97316;font-weight:700">Confirme</p>
+          </div>
+          <div style="flex:1;display:flex;align-items:flex-start;padding-top:14px"><div style="height:2px;background:#334155;width:100%"></div></div>
+          <div id="step-2" style="text-align:center;flex:1">
+            <div id="step2-dot" style="width:32px;height:32px;border-radius:50%;background:#334155;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:14px">🚗</div>
+            <p id="step2-label" style="font-size:10px;color:#64748b;font-weight:700">En route</p>
+          </div>
+          <div style="flex:1;display:flex;align-items:flex-start;padding-top:14px"><div id="step-line" style="height:2px;background:#334155;width:100%"></div></div>
+          <div id="step-3" style="text-align:center;flex:1">
+            <div id="step3-dot" style="width:32px;height:32px;border-radius:50%;background:#334155;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:14px">📦</div>
+            <p id="step3-label" style="font-size:10px;color:#64748b;font-weight:700">Livré</p>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <button onclick="cancelTracking()" style="flex:1;padding:14px;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">✕ Annuler</button>
+          <button style="flex:1;padding:14px;background:#10b981;color:white;border:none;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;font-family:Montserrat,sans-serif">📞 Appeler</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="view-b2b" style="display:none">
+    <div class="b2b-view">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="font-size:20px;font-weight:900">Grande Distribution</h2>
+        <span style="font-size:11px;background:rgba(249,115,22,0.2);color:#fb923c;padding:4px 12px;border-radius:999px;font-weight:700">B2B PRO</span>
+      </div>
+      <div class="impact-card">
+        <p class="impact-title">🌿 Impact Score — Ce mois</p>
+        <div class="impact-grid">
+          <div><div class="impact-val">12 540€</div><div class="impact-label">Anti-inflation</div></div>
+          <div><div class="impact-val">8 200€</div><div class="impact-label">Revenus sauvés</div></div>
+          <div><div class="impact-val">1.2t</div><div class="impact-label">CO₂ économisé</div></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:14px">🔔</span>
+        <p style="font-weight:700;font-size:14px">Alertes Dates Courtes</p>
+        <span style="background:#ef4444;color:white;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;margin-left:auto">3</span>
+      </div>
+      <div class="alert-item">
+        <div class="alert-info"><div class="alert-name">Filet de Sole</div><div class="alert-meta">45 kg · <span class="alert-days">J-2</span></div></div>
+        <div style="text-align:right;margin-right:12px"><div class="alert-revenue">+810€</div><div class="alert-rev-label">potentiel</div></div>
+        <button class="btn-launch" id="launch1" onclick="launch('launch1')">⚡ Lancer</button>
+      </div>
+      <div class="alert-item">
+        <div class="alert-info"><div class="alert-name">Yaourts Bio</div><div class="alert-meta">340 unités · <span class="alert-days" style="color:#ef4444">J-1</span></div></div>
+        <div style="text-align:right;margin-right:12px"><div class="alert-revenue">+272€</div><div class="alert-rev-label">potentiel</div></div>
+        <button class="btn-launch" id="launch2" onclick="launch('launch2')">⚡ Lancer</button>
+      </div>
+      <div class="alert-item">
+        <div class="alert-info"><div class="alert-name">Pain de mie</div><div class="alert-meta">180 unités · <span class="alert-days" style="color:#ef4444">J-1</span></div></div>
+        <div style="text-align:right;margin-right:12px"><div class="alert-revenue">+126€</div><div class="alert-rev-label">potentiel</div></div>
+        <button class="btn-launch" id="launch3" onclick="launch('launch3')">⚡ Lancer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-cart" style="display:none;position:relative;flex-direction:column;min-height:100vh;background:#0f172a">
+    <div class="cart-view" id="cart-content" style="overflow-y:auto;padding-bottom:100px"></div>
+    <!-- Fixed checkout button -->
+    <div id="cart-checkout-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(to top,#0f172a,rgba(15,23,42,0.95));z-index:50">
+      <button onclick="order()" id="btn-order" style="width:100%;padding:18px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:18px;font-size:18px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.4);display:flex;align-items:center;justify-content:center;gap:10px">
+        <span>⚡ Passer la commande</span>
+        <span id="checkout-total" style="background:rgba(0,0,0,0.2);padding:4px 12px;border-radius:999px;font-size:16px"></span>
+      </button>
+    </div>
+  </div>
+  <!-- PROFILE VIEW -->
+  <div id="view-profile" style="display:none;padding-bottom:80px">
+
+    <!-- Not logged in -->
+    <div id="profile-logged-out" style="display:flex;flex-direction:column;align-items:center;padding:40px 24px;text-align:center">
+      <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#f97316,#10b981);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:20px">👤</div>
+      <h2 style="font-size:22px;font-weight:900;margin-bottom:8px">Mon Compte</h2>
+      <p style="color:#64748b;font-size:14px;margin-bottom:28px">Créez votre compte pour accéder aux favoris, notifications et offres personnalisées</p>
+      <button onclick="showProfilePanel('register')" style="width:100%;max-width:320px;padding:16px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:16px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;box-shadow:0 8px 24px rgba(249,115,22,0.3);margin-bottom:12px">
+        ✨ Créer mon compte
+      </button>
+      <button onclick="showProfilePanel('login')" style="width:100%;max-width:320px;padding:16px;background:#1e293b;color:white;border:1px solid #334155;border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+        🔑 Se connecter
+      </button>
+    </div>
+
+    <!-- Register panel -->
+    <div id="profile-register" style="display:none;padding:20px">
+      <button onclick="showProfilePanel('out')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-bottom:16px;font-family:Montserrat,sans-serif">← Retour</button>
+      <h2 style="font-size:20px;font-weight:900;margin-bottom:20px">Créer mon compte</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">PRÉNOM</label>
+          <input id="reg-prenom" placeholder="ex: Sophie" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">NOM</label>
+          <input id="reg-nom" placeholder="ex: Dupont" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">EMAIL</label>
+          <input id="reg-email" type="email" placeholder="ex: sophie@email.com" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">MOT DE PASSE</label>
+          <input id="reg-pwd" type="password" placeholder="••••••••" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">VILLE</label>
+          <input id="reg-ville" placeholder="ex: Fayence" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <p id="reg-client-error" style="color:#ef4444;font-size:12px;display:none;text-align:center"></p>
+        <button onclick="doClientRegister()" style="width:100%;padding:16px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif;margin-top:4px">
+          ✨ Créer mon compte
+        </button>
+      </div>
+    </div>
+
+    <!-- Login panel -->
+    <div id="profile-login" style="display:none;padding:20px">
+      <button onclick="showProfilePanel('out')" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-bottom:16px;font-family:Montserrat,sans-serif">← Retour</button>
+      <h2 style="font-size:20px;font-weight:900;margin-bottom:20px">Connexion</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">EMAIL</label>
+          <input id="login-email-client" type="email" placeholder="ex: sophie@email.com" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:6px">MOT DE PASSE</label>
+          <input id="login-pwd-client" type="password" placeholder="••••••••" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px;color:white;font-family:Montserrat,sans-serif;font-size:15px;box-sizing:border-box"/>
+        </div>
+        <p id="login-client-error" style="color:#ef4444;font-size:12px;display:none;text-align:center"></p>
+        <button onclick="doClientLogin()" style="width:100%;padding:16px;background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:Montserrat,sans-serif">
+          🔑 Se connecter
+        </button>
+      </div>
+    </div>
+
+    <!-- Logged in dashboard -->
+    <div id="profile-dashboard" style="display:none">
+      <!-- Header avatar -->
+      <div style="background:linear-gradient(160deg,#1e293b,#0f172a);padding:28px 20px 20px">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+          <div id="profile-avatar-big" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f97316,#10b981);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:white;flex-shrink:0;border:3px solid #f97316"></div>
+          <div>
+            <h2 id="profile-fullname" style="font-size:20px;font-weight:900;margin:0 0 4px"></h2>
+            <p id="profile-email-display" style="font-size:13px;color:#64748b;margin:0"></p>
+            <p id="profile-ville-display" style="font-size:12px;color:#f97316;margin:4px 0 0">📍 </p>
+          </div>
+        </div>
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:14px;padding:12px;text-align:center">
+            <p id="stat-favs" style="font-size:22px;font-weight:900;color:#f97316;margin:0">0</p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin:2px 0 0">FAVORIS</p>
+          </div>
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:14px;padding:12px;text-align:center">
+            <p id="stat-saves" style="font-size:22px;font-weight:900;color:#34d399;margin:0">0€</p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin:2px 0 0">ÉCONOMISÉ</p>
+          </div>
+          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:12px;text-align:center">
+            <p id="stat-co2" style="font-size:22px;font-weight:900;color:#818cf8;margin:0">0kg</p>
+            <p style="font-size:10px;color:#64748b;font-weight:700;margin:2px 0 0">CO₂ ÉVITÉ</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:16px">
+
+        <!-- Notifications section -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:22px">🔔</span>
+              <div>
+                <p style="font-size:15px;font-weight:900;margin:0">Notifications</p>
+                <p style="font-size:11px;color:#64748b;margin:2px 0 0">Alertes produits en temps réel</p>
+              </div>
+            </div>
+            <div id="notif-toggle-wrap">
+              <button id="notif-toggle-btn" onclick="toggleNotifications()" style="padding:10px 16px;background:#f97316;color:white;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+                Activer
+              </button>
+            </div>
+          </div>
+          <div id="notif-status-bar" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0;animation:pulse 1s infinite"></span>
+            <span style="font-size:12px;color:#6ee7b7;font-weight:700">Notifications actives — vous serez alerté des nouvelles offres</span>
+          </div>
+        </div>
+
+        <!-- Périmètre -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:22px">📍</span>
+            <div>
+              <p style="font-size:15px;font-weight:900;margin:0">Périmètre de recherche</p>
+              <p style="font-size:11px;color:#64748b;margin:2px 0 0">Alertes dans ce rayon autour de vous</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:14px;font-weight:700">Rayon :</span>
+            <span id="radius-display" style="font-size:18px;font-weight:900;color:#f97316">10 km</span>
+          </div>
+          <input type="range" id="radius-slider" min="1" max="50" value="10" oninput="updateRadius(this.value)"
+            style="width:100%;accent-color:#f97316;cursor:pointer"/>
+          <div style="display:flex;justify-content:space-between;margin-top:4px">
+            <span style="font-size:10px;color:#475569">1 km</span>
+            <span style="font-size:10px;color:#475569">50 km</span>
+          </div>
+          <!-- Zone presets -->
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button onclick="setRadius(5)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:999px;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">5 km</button>
+            <button onclick="setRadius(10)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.2);border:1px solid #f97316;border-radius:999px;color:#f97316;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">10 km</button>
+            <button onclick="setRadius(20)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:999px;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">20 km</button>
+            <button onclick="setRadius(50)" class="radius-preset" style="padding:7px 14px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:999px;color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">50 km</button>
+          </div>
+        </div>
+
+        <!-- Catégories favorites -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:22px">❤️</span>
+            <div>
+              <p style="font-size:15px;font-weight:900;margin:0">Mes catégories</p>
+              <p style="font-size:11px;color:#64748b;margin:2px 0 0">Recevoir des alertes pour ces produits</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button onclick="toggleFavCat(this,'viande')" data-cat="viande" class="fav-cat-btn" style="padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥩 Viande</button>
+            <button onclick="toggleFavCat(this,'cave')" data-cat="cave" class="fav-cat-btn" style="padding:10px 14px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;color:#c4b5fd;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍷 Cave</button>
+            <button onclick="toggleFavCat(this,'primeur')" data-cat="primeur" class="fav-cat-btn" style="padding:10px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;color:#6ee7b7;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🥦 Primeur</button>
+            <button onclick="toggleFavCat(this,'laitier')" data-cat="laitier" class="fav-cat-btn" style="padding:10px 14px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:12px;color:#fde68a;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🧀 Laitier</button>
+            <button onclick="toggleFavCat(this,'pret')" data-cat="pret" class="fav-cat-btn" style="padding:10px 14px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;color:#93c5fd;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🍱 Prêt</button>
+            <button onclick="toggleFavCat(this,'poisson')" data-cat="poisson" class="fav-cat-btn" style="padding:10px 14px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:12px;color:#67e8f9;font-size:13px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">🐟 Poisson</button>
+          </div>
+        </div>
+
+        <!-- Produits favoris -->
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:22px">⭐</span>
+            <p style="font-size:15px;font-weight:900;margin:0">Mes produits favoris</p>
+          </div>
+          <div id="fav-products-list">
+            <p style="font-size:13px;color:#475569;text-align:center;padding:12px">Appuyez sur ❤️ sur un deal pour l'ajouter</p>
+          </div>
+        </div>
+
+        <!-- Déconnexion -->
+        <button onclick="logoutClient()" style="width:100%;padding:14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:14px;color:#ef4444;font-size:14px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-feed" onclick="showTab('feed')"><span class="nav-icon">⚡</span><span class="nav-label">Deals</span></button>
+  <button class="nav-btn" id="nav-live" onclick="showTab('live')"><span class="nav-icon">🔥</span><span class="nav-label">Live</span><span class="nav-dot"></span></button>
+  <button class="nav-btn" id="nav-bimride" onclick="showTab('bimride')"><span class="nav-icon">🚗</span><span class="nav-label">BIM-Ride</span></button>
+  <button class="nav-btn" id="nav-b2b" onclick="showTab('b2b')"><span class="nav-icon">📊</span><span class="nav-label">B2B</span></button>
+  <button class="nav-btn" id="nav-profile" onclick="showTab('profile')" style="position:relative"><span class="nav-icon">👤</span><span class="nav-label">Compte</span><span id="profile-dot" style="display:none;position:absolute;top:4px;right:14px;width:8px;height:8px;border-radius:50%;background:#34d399"></span></button>
+</nav>
+
+
+<!-- SCRIPTS -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/deals.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/merchant.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/bimride.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
